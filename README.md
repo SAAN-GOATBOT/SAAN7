@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff00ff,50:00ffff,100:ff0080&height=200&section=header&text=SATURO%20BOT%20V3&fontSize=70&fontColor=ffffff&animation=twinkling&fontAlignY=38&desc=⚡Facebook%20Messenger%20Bot%20⚡&descSize=20&descAlignY=60&descColor=FFD700" width="100%"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff00ff,50:00ffff,100:ff0080&height=200&section=header&text=SAAN%20BOT%20V3&fontSize=70&fontColor=ffffff&animation=twinkling&fontAlignY=38&desc=⚡Facebook%20Messenger%20Bot%20⚡&descSize=20&descAlignY=60&descColor=FFD700" width="100%"/>
 </div>
 
 <br/>
@@ -12,7 +12,7 @@
 
 <div align="center">
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Orbitron&weight=700&size=28&duration=3000&pause=800&color=00FFFF&center=true&vCenter=true&width=600&lines=🚀+245%2B+Commands+Ready;⚡+Lightning+Fast+Performance;🛡️+Advanced+Anti-Suspension;🎛️+Powerful+Web+Dashboard;💫+Maintained+by+ANIK+ISLAM+SADIK)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Orbitron&weight=700&size=28&duration=3000&pause=800&color=00FFFF&center=true&vCenter=true&width=600&lines=🚀+245%2B+Commands+Ready;⚡+Lightning+Fast+Performance;🛡️+Advanced+Anti-Suspension;🎛️+Powerful+Web+Dashboard;💫+Maintained+by+SIAM+AHMED+SAAN)](https://git.io/typing-svg)
 
 </div>
 
@@ -119,7 +119,7 @@ module.exports = {
   config: {
     name: "commandName",
     version: "2.0",
-    author: "ANIK ISLAM SADIK",
+    author: "Siam Ahmed Saan",
     role: 0,              // 0=All  1=Admin  2=VIP  3=Premium  4=AdminBot  5=Dev  6=Creator
     usePrefix: true,
     description: "Command description here",
@@ -166,10 +166,10 @@ Module Progress Status
 
 ```bash
 # Clone the repository
-git clone https://github.com/ncazad/SATURO-BOT-V3.git
+git clone https://github.com/SAAN-GOATBOT/SAAN7.git
 
 # Navigate to project directory
-cd SATURO-BOT-V3
+cd SAAN-GOAT-BOT/SAAN7
 
 # Install dependencies
 npm install
@@ -188,13 +188,13 @@ npm start
 <div align="center">
 
 <a href="https://www.facebook.com/profile.php?id=61590594545013">
-  <img src="https://img.shields.io/badge/👤_ANIK_ISLAM_SADIK-1877F2?style=for-the-badge&logo=facebook&logoColor=white"/>
+  <img src="https://img.shields.io/badge/👤_SIAM_AHMED_SAAN-1877F2?style=for-the-badge&logo=facebook&logoColor=white"/>
 </a>
 <a 
-<a href="https://github.com/aLpha-x69/SATURO-BOT-V3/issues">
+<a href="https://github.com/SAAN-GOATBOT/SAAN7/issues">
   <img src="https://img.shields.io/badge/🐛_Report_Bug-FF4444?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
-<a href="https://github.com/aLpha-x69/SATURO-BOT-V3/discussions">
+<a href="https://github.com/SAAN-GOATBOT/SAAN7.git/discussions">
   <img src="https://img.shields.io/badge/💬_Discussions-00CED1?style=for-the-badge&logo=github&logoColor=white"/>
 </a>
 
@@ -208,8 +208,8 @@ npm start
 
 Role Name Contribution
 🏆 Original Creator NTKhang03 Goat-Bot-V2 Base
-👑 Modifier AZADX69X Core Modifications & Enhancements
-🛠️ Maintainer ANIK ISLAM SADIK Active Development & Support
+👑 Modifier SAAN Core Modifications & Enhancements
+🛠️ Maintainer SIAM AHMED SAAN Active Development & Support
 
 </div>
 
@@ -234,12 +234,12 @@ If you find this project helpful, please consider:
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║                    SATURO BOT V3                            ║
+║                    SAAN BOT V3                            ║
 ║                 MIT License (No Derivatives)                ║
 ║                                                             ║
 ║  Copyright (c) 2022 NTKhang03                              ║
-║  Modified by AZADX69X                                      ║
-║  Maintained by ANIK ISLAM SADIK                            ║
+║  Modified by SAAN                                      ║
+║  Maintained by SIAM AHMED SAAN                            ║
 ║                                                             ║
 ║  ✔ You may use and share this software freely              ║
 ║  ✘ You may NOT modify or create derivative works           ║
