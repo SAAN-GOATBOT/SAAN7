@@ -17,7 +17,7 @@ module.exports = {
 
   onStart: async function ({ message }) {
     try {
-      const repo = "saan-ngl/SAAN-GOAT-BOT-V3";
+      const repo = "SAAN-GOATBOT/SAAN7";
       const res = await axios.get(`https://api.github.com/repos/${repo}`);
       const data = res.data;
 
