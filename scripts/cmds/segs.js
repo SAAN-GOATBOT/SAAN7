@@ -9,7 +9,7 @@ module.exports = {
         config: {
                 name: "segs",
                 version: "1.7",
-                author: "Siam Ahmed Saan",
+                author: "MahMUD",
                 countDown: 10,
                 role: 2,
                 category: "18+",
