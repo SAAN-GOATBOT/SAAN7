@@ -3,15 +3,15 @@ const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
 const mediaUrls = [
-  "https://i.imgur.com/u93Yuik.mp4"
+  "https://i.imgur.com/U052kne.gif"
 ];
 
 module.exports = {
   config: {
     name: "help",
-    aliases: ["use"],
+    aliases: ["h"],
     version: "1.25",
-    author: "Ayanokōji fixed by Siam Ahmed Saan",
+    author: "Ayanokōji fixed by Toshiro 𝗦𝗮𝗮𝗻 𝗘𝘅𝗵𝗮𝘂𝘀𝘁𝗲𝗱",
     countDown: 5,
     role: 0,
     shortDescription: {
@@ -108,11 +108,11 @@ module.exports = {
           msg += `╘══════════════════╛\n`;
         }
 
-        msg += `\n╭‣『 SAAN BOT 』\n`;
+        msg += `\n╭‣『 ALYA BOT 』\n`;
         msg += `╰‣ Total Commands: ${totalCommands}\n`;
         msg += `╭‣ Page ${page}/${totalPages}\n`;
         msg += `╰‣ Prefix: ${prefix}\n`;
-        msg += `╭‣ Admin: Siam Ahmed Saan\n`;
+        msg += `╭‣ Admin: 𝗦𝗶𝗮𝗺 𝗔𝗵𝗺𝗲𝗱 𝗦𝗮𝗮𝗻\n`;
         msg += `╰‣ Type ${prefix}help <command> for details`;
 
         return message.reply({
