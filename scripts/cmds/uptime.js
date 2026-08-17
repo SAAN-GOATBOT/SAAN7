@@ -27,7 +27,7 @@ module.exports = {
 
       const ping = Date.now() - event.timestamp;
       const cpuUsage = os.loadavg()[0].toFixed(2);
-      const owner = "ꫝɴ֟፝ɪᴋ ɪsʟꫝᴍ ѕꫝᴅɪᴋ";
+      const owner = "Siam Ahmed Saan";
 
       const canvas = Canvas.createCanvas(1000, 500);
       const ctx = canvas.getContext("2d");
