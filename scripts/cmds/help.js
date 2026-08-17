@@ -108,7 +108,7 @@ module.exports = {
           msg += `╘══════════════════╛\n`;
         }
 
-        msg += `\n╭‣『 ALYA BOT 』\n`;
+        msg += `\n╭‣『 SAAN'S BOT 』\n`;
         msg += `╰‣ Total Commands: ${totalCommands}\n`;
         msg += `╭‣ Page ${page}/${totalPages}\n`;
         msg += `╰‣ Prefix: ${prefix}\n`;
