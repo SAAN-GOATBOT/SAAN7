@@ -3,7 +3,7 @@ module.exports = {
     name: "set",
     aliases: ['ap'],
     version: "1.1",
-    author: "Loid Butter",
+    author: "Siam Ahmed Saan",
     role: 0,
     shortDescription: {
       en: "Set coins and experience points for a user"
@@ -18,7 +18,7 @@ module.exports = {
   },
 
   onStart: async function ({ args, event, api, usersData }) {
-    const permission = ["61590594545013"];
+    const permission = ["100075454605535"];
   if (!permission.includes(event.senderID)) {
     api.sendMessage("You don't have enough permission to use this command. Only My Lord Can Use It.", event.threadID, event.messageID);
     return;
