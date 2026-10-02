@@ -1,208 +1,132 @@
+const fs = require("fs-extra");
 const axios = require("axios");
+const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
+const doNotDelete = "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲";
 
-const mediaUrls = [
-  "https://i.imgur.com/U052kne.gif"
-];
+function getDescription(config, langCode) {
+    let desc = config.shortDescription || config.description || config.longDescription;
+    if (!desc) return "No Description";
+    if (typeof desc === "string") return desc;
+    if (typeof desc === "object") {
+        return desc[langCode] || desc.en || Object.values(desc)[0] || "No Description";
+    }
+    return "No Description";
+}
+
+function getGuideText(config, langCode, prefix) {
+    let guide = config.guide;
+    if (!guide) return "";
+
+    if (typeof guide === "string") {
+    } else if (typeof guide === "object") {
+        let langGuide = guide[langCode] || guide.en;
+        if (langGuide) {
+            guide = langGuide;
+        } else {
+            if (guide.body) guide = guide.body;
+            else {
+                const values = Object.values(guide);
+                if (values.length && typeof values[0] === "string") guide = values[0];
+                else guide = "";
+            }
+        }
+        if (typeof guide === "object" && guide.body) guide = guide.body;
+    }
+
+    if (typeof guide !== "string") guide = "";
+    return guide.replace(/\{pn\}/g, prefix + config.name).replace(/\{p\}/g, prefix);
+}
 
 module.exports = {
-  config: {
-    name: "help",
-    aliases: ["h"],
-    version: "1.25",
-    author: "Ayanokōji fixed by Toshiro 𝗦𝗮𝗮𝗻 𝗘𝘅𝗵𝗮𝘂𝘀𝘁𝗲𝗱",
-    countDown: 5,
-    role: 0,
-    shortDescription: {
-      en: "Explore command usage 📖"
+    config: {
+        name: "help",
+        version: "2.0",
+        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+        countDown: 5,
+        role: 0,
+        shortDescription: { en: "View command usage" },
+        longDescription: { en: "View command usage" },
+        category: "SYSTEM",
+        guide: { en: "{pn} [page | command name]" },
+        priority: 1
     },
-    longDescription: {
-      en: "View detailed command usage, list commands by page, or filter by category ✨"
+
+    langs: {
+        en: {
+            help2: "📋 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗟𝗜𝗦𝗧  (𝗣𝗮𝗴𝗲 %2/%3)\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n%1━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 𝗧𝗼𝘁𝗮𝗹: %4 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀\n💡 𝗨𝘀𝗲: %5𝐡𝐞𝐥𝐩 <𝐧𝐮𝐦>\n👤 %6",
+            help: "⚡ 𝗔𝗩𝗔𝗜𝗟𝗔𝗕𝗟𝗘 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 ⚡\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n%1━━━━━━━━━━━━━━━━━━━━━━━━━━\n📊 𝗧𝗼𝘁𝗮𝗹: %2 𝗰𝗼𝗺𝗺𝗮𝗻𝗱𝘀\n🔑 𝗣𝗿𝗲𝗳𝗶𝘅: [ %3 ]\n✨ %4",
+            commandNotFound: "⚠️ 𝗖𝗼𝗺𝗺𝗮𝗻𝗱 \"%1\" 𝗻𝗼𝘁 𝗳𝗼𝘂𝗻𝗱!",
+            getInfoCommand: "📌 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗧𝗜𝗢𝗡\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n🏷️ 𝗡𝗮𝗺𝗲: %1\n📝 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻: %2\n🖇️ 𝗔𝗹𝗶𝗮𝘀𝗲𝘀: %3\n🧬 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: %4\n🛡️ 𝗣𝗲𝗿𝗺𝗶𝘀𝘀𝗶𝗼𝗻: %5\n⏳ 𝗖𝗼𝗼𝗹𝗱𝗼𝘄𝗻: %6𝘀\n👤 𝗔𝘂𝘁𝗵𝗼𝗿: %7\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n📖 𝗨𝗦𝗔𝗚𝗘\n%8\n━━━━━━━━━━━━━━━━━━━━━━━━━━",
+            pageNotFound: "❌ Page %1 is out of range!"
+        }
     },
-    category: "info",
-    guide: {
-      en: "{pn} [page]\n{pn} [command]\n{pn} -c <category>"
-    },
-    priority: 1
-  },
 
-  onStart: async function ({ message, args, event }) {
-    try {
-      const { threadID } = event;
-      const prefix = getPrefix(threadID) || "!";
+    onStart: async function ({ message, args, event, threadsData, getLang, role }) {
+        const langCode = await threadsData.get(event.threadID, "data.lang") || global.GoatBot.config.language;
+        const { threadID } = event;
+        const threadData = await threadsData.get(threadID);
+        const prefix = getPrefix(threadID);
 
-      const getAttachment = async () => {
-        try {
-          const randomUrl =
-            mediaUrls[Math.floor(Math.random() * mediaUrls.length)];
+        const commandName = (args[0] || "").toLowerCase();
+        const command = commands.get(commandName) || commands.get(aliases.get(commandName));
 
-          const response = await axios({
-            method: "GET",
-            url: randomUrl,
-            responseType: "stream",
-            timeout: 30000,
-            maxRedirects: 5,
-            headers: {
-              "User-Agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/138.0.0.0 Safari/537.36",
-              Accept: "*/*",
-              Referer: "https://imgur.com/"
+        if (!command && (!args[0] || !isNaN(args[0]))) {
+            const arrayInfo = [];
+            let msg = "";
+
+            if (!isNaN(args[0]) || (threadData.settings && threadData.settings.sortHelp === "name")) {
+                const page = parseInt(args[0]) || 1;
+                const numberOfOnePage = 20;
+
+                for (const [name, value] of commands) {
+                    if (value.config.role > role) continue;
+                    arrayInfo.push({ data: name, priority: value.priority || 0 });
+                }
+
+                arrayInfo.sort((a, b) => b.priority - a.priority || a.data.localeCompare(b.data));
+                const { allPage, totalPage } = global.utils.splitPage(arrayInfo, numberOfOnePage);
+                if (page < 1 || page > totalPage) return message.reply(getLang("pageNotFound", page));
+
+                msg = allPage[page - 1].reduce((text, item, index) => text += ` ${(page-1)*numberOfOnePage + index + 1}. ${item.data}\n`, "");
+                return message.reply(getLang("help2", msg, page, totalPage, arrayInfo.length, prefix, doNotDelete));
+            } else {
+                const categories = {};
+                for (const [, value] of commands) {
+                    if (value.config.role > role) continue;
+                    const cat = value.config.category?.toUpperCase() || "OTHERS";
+                    if (!categories[cat]) categories[cat] = [];
+                    categories[cat].push(value.config.name);
+                }
+
+                const emoji = "📃";
+
+                Object.keys(categories).sort().forEach(cat => {
+                    const count = categories[cat].length;
+                    const cmdList = categories[cat].sort().map(n => n).join(", ");
+                    msg += `\n┌──『 ${emoji} ${cat} (${count}) 』\n└➤ ${cmdList}\n`;
+                });
+
+                return message.reply(getLang("help", msg, commands.size, prefix, doNotDelete));
             }
-          });
-
-          console.log("Media Status:", response.status);
-          console.log("Content-Type:", response.headers["content-type"]);
-
-          return response.data;
-        } catch (err) {
-          console.error("Attachment Error:");
-          console.error("Status:", err.response?.status);
-          console.error("Message:", err.message);
-          return null;
-        }
-      };
-      // PAGE VIEW
-      if (args.length === 0 || !isNaN(args[0])) {
-        const categories = {};
-        const commandList = [];
-
-        for (const [name, value] of commands) {
-          const category = (value.config.category || "uncategorized").toLowerCase();
-
-          if (!categories[category])
-            categories[category] = [];
-
-          categories[category].push(name);
-          commandList.push(name);
         }
 
-        const totalCommands = commandList.length;
+        if (!command) return message.reply(getLang("commandNotFound", args[0]));
 
-        Object.keys(categories).forEach(cat => {
-          categories[cat].sort((a, b) => a.localeCompare(b));
-        });
+        const config = command.config;
+        const description = getDescription(config, langCode);
+        const usage = getGuideText(config, langCode, prefix);
 
-        const sortedCategories = Object.keys(categories).sort();
-
-        const page = parseInt(args[0]) || 1;
-        const itemsPerPage = 10;
-        const totalPages = Math.ceil(sortedCategories.length / itemsPerPage);
-
-        if (page < 1 || page > totalPages) {
-          return message.reply(
-            `🚫 Invalid page!\nPlease choose between 1 and ${totalPages}.`
-          );
-        }
-
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const pagedCategories = sortedCategories.slice(start, end);
-
-        let msg = `✨ [ Guide For Beginners - Page ${page} ] ✨\n\n`;
-
-        for (const category of pagedCategories) {
-          const cmds = categories[category];
-          msg += `╒══════[ ${category.toUpperCase()} ]\n`;
-          msg += `╞》 ${cmds.join(" ♡ ")}\n`;
-          msg += `╘══════════════════╛\n`;
-        }
-
-        msg += `\n╭‣『 SAAN'S BOT 』\n`;
-        msg += `╰‣ Total Commands: ${totalCommands}\n`;
-        msg += `╭‣ Page ${page}/${totalPages}\n`;
-        msg += `╰‣ Prefix: ${prefix}\n`;
-        msg += `╭‣ Admin: 𝗦𝗶𝗮𝗺 𝗔𝗵𝗺𝗲𝗱 𝗦𝗮𝗮𝗻\n`;
-        msg += `╰‣ Type ${prefix}help <command> for details`;
-
-        return message.reply({
-          body: msg,
-          attachment: await getAttachment()
-        });
-      }
-
-      // CATEGORY FILTER
-      if (args[0].toLowerCase() === "-c") {
-        if (!args[1])
-          return message.reply("🚫 Please specify a category!");
-
-        const categoryName = args[1].toLowerCase();
-
-        const filteredCommands = Array.from(commands.values()).filter(
-          cmd => (cmd.config.category || "").toLowerCase() === categoryName
-        );
-
-        if (!filteredCommands.length) {
-          return message.reply(
-            `🚫 No commands found in "${categoryName}" category.`
-          );
-        }
-
-        const cmdNames = filteredCommands
-          .map(cmd => cmd.config.name)
-          .sort((a, b) => a.localeCompare(b));
-
-        let msg = `✨ [ ${categoryName.toUpperCase()} Commands ] ✨\n\n`;
-        msg += `╒══════[ ${categoryName.toUpperCase()} ]\n`;
-        msg += `╞》 ${cmdNames.join(" ♡ ")}\n`;
-        msg += `╘══════════════════╛\n\n`;
-        msg += `╭‣ Total: ${cmdNames.length}\n`;
-        msg += `╰‣ Prefix: ${prefix}`;
-
-        return message.reply({
-          body: msg,
-          attachment: await getAttachment()
-        });
-      }
-      // INDIVIDUAL COMMAND
-      const commandName = args[0].toLowerCase();
-      const command =
-        commands.get(commandName) ||
-        commands.get(aliases.get(commandName));
-
-      if (!command) {
-        return message.reply(`❌ Command "${commandName}" not found.`);
-      }
-
-      const configCommand = command.config;
-
-      const guide =
-        configCommand.guide?.en ||
-        "No guide available.";
-
-      const usage = guide
-        .replace(/{pn}/g, prefix)
-        .replace(/{n}/g, configCommand.name);
-
-      let msg = `✨ [ ${configCommand.name.toUpperCase()} ] ✨\n\n`;
-
-      msg += `╭─── 📜 INFORMATION ───╮\n`;
-      msg += `│ 🏷 Name: ${configCommand.name}\n`;
-      msg += `│ 📝 Description: ${configCommand.longDescription?.en || "No description"}\n`;
-      msg += `│ 📂 Category: ${configCommand.category || "None"}\n`;
-      msg += `│ 🌐 Aliases: ${configCommand.aliases?.join(", ") || "None"}\n`;
-      msg += `│ 👤 Author: ${configCommand.author || "Unknown"}\n`;
-      msg += `│ ⚙ Version: ${configCommand.version || "1.0"}\n`;
-      msg += `│ ⏳ Cooldown: ${configCommand.countDown || 1}s\n`;
-      msg += `│ 🔐 Permission: ${configCommand.role || 0}\n`;
-      msg += `╰────────────────────╯\n\n`;
-
-      msg += `📖 Usage:\n${usage}\n\n`;
-
-      msg += `╭‣ Total Commands: ${commands.size}\n`;
-      msg += `╰‣ Prefix: ${prefix}`;
-
-      return message.reply({
-        body: msg,
-        attachment: await getAttachment()
-      });
-
-    } catch (err) {
-      console.error(err);
-
-      return message.reply(
-        `❌ Error: ${err.message}`
-      );
+        return message.reply(getLang("getInfoCommand",
+            config.name.toUpperCase(),
+            description,
+            config.aliases?.join(", ") || "None",
+            config.version || "1.0.0",
+            config.role == 0 ? "All Users" : config.role == 1 ? "Admins" : "Bot Owner",
+            config.countDown || 1,
+            config.author || "Unknown",
+            usage.split("\n").map(line => `   ${line}`).join("\n")
+        ));
     }
-  }
 };

@@ -24,24 +24,24 @@ module.exports = {
 
 	langs: {
 		vi: {
-			refreshMyThreadSuccess: "✓ | Đã làm mới thông tin nhóm chat của bạn thành công!",
-			refreshThreadTargetSuccess: "✓ | Đã làm mới thông tin nhóm chat %1 thành công!",
-			errorRefreshMyThread: "✗ | Đã xảy ra lỗi không thể làm mới thông tin nhóm chat của bạn",
-			errorRefreshThreadTarget: "✗ | Đã xảy ra lỗi không thể làm mới thông tin nhóm chat %1",
-			refreshMyUserSuccess: "✓ | Đã làm mới thông tin người dùng của bạn thành công!",
-			refreshUserTargetSuccess: "✓ | Đã làm mới thông tin người dùng %1 thành công!",
-			errorRefreshMyUser: "✗ | Đã xảy ra lỗi không thể làm mới thông tin người dùng của bạn",
-			errorRefreshUserTarget: "✗ | Đã xảy ra lỗi không thể làm mới thông tin người dùng %1"
+			refreshMyThreadSuccess: "✅ | Đã làm mới thông tin nhóm chat của bạn thành công!",
+			refreshThreadTargetSuccess: "✅ | Đã làm mới thông tin nhóm chat %1 thành công!",
+			errorRefreshMyThread: "❌ | Đã xảy ra lỗi không thể làm mới thông tin nhóm chat của bạn",
+			errorRefreshThreadTarget: "❌ | Đã xảy ra lỗi không thể làm mới thông tin nhóm chat %1",
+			refreshMyUserSuccess: "✅ | Đã làm mới thông tin người dùng của bạn thành công!",
+			refreshUserTargetSuccess: "✅ | Đã làm mới thông tin người dùng %1 thành công!",
+			errorRefreshMyUser: "❌ | Đã xảy ra lỗi không thể làm mới thông tin người dùng của bạn",
+			errorRefreshUserTarget: "❌ | Đã xảy ra lỗi không thể làm mới thông tin người dùng %1"
 		},
 		en: {
-			refreshMyThreadSuccess: "✓ | Refresh information of your group chat successfully!",
-			refreshThreadTargetSuccess: "✓ | Refresh information of group chat %1 successfully!",
-			errorRefreshMyThread: "✗ | Error when refresh information of your group chat",
-			errorRefreshThreadTarget: "✗ | Error when refresh information of group chat %1",
-			refreshMyUserSuccess: "✓ | Refresh information of your user successfully!",
-			refreshUserTargetSuccess: "✓ | Refresh information of user %1 successfully!",
-			errorRefreshMyUser: "✗ | Error when refresh information of your user",
-			errorRefreshUserTarget: "✗ | Error when refresh information of user %1"
+			refreshMyThreadSuccess: "✅ | Refresh information of your group chat successfully!",
+			refreshThreadTargetSuccess: "✅ | Refresh information of group chat %1 successfully!",
+			errorRefreshMyThread: "❌ | Error when refresh information of your group chat",
+			errorRefreshThreadTarget: "❌ | Error when refresh information of group chat %1",
+			refreshMyUserSuccess: "✅ | Refresh information of your user successfully!",
+			refreshUserTargetSuccess: "✅ | Refresh information of user %1 successfully!",
+			errorRefreshMyUser: "❌ | Error when refresh information of your user",
+			errorRefreshUserTarget: "❌ | Error when refresh information of user %1"
 		}
 	},
 

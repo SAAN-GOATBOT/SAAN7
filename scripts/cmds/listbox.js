@@ -2,13 +2,13 @@ module.exports = {
   config: {
     name: "listbox",
     aliases: ["grouplist", "listgroup"],
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     version: "2.7",
     cooldowns: 5,
     role: 2,
     shortDescription: { en: "List all groups with pagination and control options." },
     longDescription: { en: "List all group chats the bot is in with options to leave or join." },
-    category: "GROUP",
+    category: "BOX CHAT",
     guide: { en: "{p}{n} [page_number]" }
   },
 

@@ -4,13 +4,13 @@ const path = require('path');
 
 exports.config = {
     name: "maze",
-    author: "allou moha",//updated by NeoKEX
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",//updated by NeoKEX
     role: 0,
     countDown: 40,
     description: "Play maze with adjustable difficulty.",
     version: "1.0.3",
     guide: "{pn} [1-10] or {pn} [easy|medium|hard]",
-    category: "game",
+    category: "GAMES",
 };
 
 function generateMazeImage(difficulty = 15, grid = null, cols = null, highlightPath = null, wrongPath = null, currentPosition = null, progressPath = null) {

@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "sanda",
     version: "2.0",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
     shortDescription: { en: "Convert someone into a cow" },
@@ -70,7 +70,7 @@ module.exports = {
       api.setMessageReaction("✅", messageID, () => {}, true);
 
       return api.sendMessage({
-        body: `🚨 BREAKING NEWS 🚨\n\nসাহারা মরুভূমিতে বিরল প্রজাতির সান্ডা পাওয়া গেছে! বিজ্ঞানিরা নিশ্চিত করেছেন এটি আর কেউ নয়,আমাদের ${name} 🦎☀️`,
+        body: `🚨 BREAKING NEWS 🚨\n\nসাহারা মরুভূমিতে বিরল প্রজাতির সান্ডা পাওয়া গেছে! বিজ্ঞানিরা নিশ্চিত করেছেন এটি আর কেউ নয়, আমাদের ${name} 🦎☀️`,
         attachment: fs.createReadStream(pathImg)
       }, threadID, () => {
         if (fs.existsSync(pathImg)) fs.unlinkSync(pathImg);

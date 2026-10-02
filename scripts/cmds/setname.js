@@ -1,98 +1,88 @@
 async function checkShortCut(nickname, uid, usersData) {
-	try {
-		/\{userName\}/gi.test(nickname) ? nickname = nickname.replace(/\{userName\}/gi, await usersData.getName(uid)) : null;
-		/\{userID\}/gi.test(nickname) ? nickname = nickname.replace(/\{userID\}/gi, uid) : null;
-		return nickname;
-	}
-	catch (e) {
-		return nickname;
-	}
+  try {
+    if (/\{userName\}/gi.test(nickname)) {
+      nickname = nickname.replace(/\{userName\}/gi, await usersData.getName(uid));
+    }
+    if (/\{userID\}/gi.test(nickname)) {
+      nickname = nickname.replace(/\{userID\}/gi, uid);
+    }
+    return nickname;
+  } catch (e) {
+    return nickname;
+  }
 }
 
 module.exports = {
-	config: {
-		name: "setname",
-		version: "1.5",
-		author: "NTKhang",
-		countDown: 5,
-		role: 0,
-		description: {
-			vi: "Đổi biệt danh của tất cả thành viên trong nhóm chat hoặc những thành viên được tag theo một định dạng",
-			en: "Change nickname of all members in chat or members tagged by a format"
-		},
-		category: "box chat",
-		guide: {
-			vi: {
-				body: "   {pn} <nick name>: thay đổi biệt danh của bản thân"
-					+ "\n   {pn} @tags <nick name>: thay đổi biệt danh của những thành viên được tag"
-					+ "\n   {pn} all <nick name>: thay đổi biệt danh của tất cả thành viên trong nhóm chat"
-					+ "\n\n   Với các shortcut có sẵn:"
-					+ "\n   + {userName}: tên của thành viên"
-					+ "\n   + {userID}: ID của thành viên"
-					+ "\n\n   Ví dụ: (xem ảnh)",
-				attachment: {
-					[`${__dirname}/assets/guide/setname_1.png`]: "https://i.ibb.co/gFh23zb/guide1.png",
-					[`${__dirname}/assets/guide/setname_2.png`]: "https://i.ibb.co/BNWHKgj/guide2.png"
-				}
-			},
-			en: {
-				body: "   {pn} <nick name>: change nickname of yourself"
-					+ "\n   {pn} @tags <nick name>: change nickname of members tagged"
-					+ "\n   {pn} all <nick name>: change nickname of all members in chat"
-					+ "\n\nWith available shortcuts:"
-					+ "\n   + {userName}: name of member"
-					+ "\n   + {userID}: ID of member"
-					+ "\n\n   Example: (see image)",
-				attachment: {
-					[`${__dirname}/assets/guide/setname_1.png`]: "https://i.ibb.co/gFh23zb/guide1.png",
-					[`${__dirname}/assets/guide/setname_2.png`]: "https://i.ibb.co/BNWHKgj/guide2.png"
-				}
-			}
-		}
-	},
+  config: {
+    name: "setname",
+    version: "2.0",
+    author: "NTKhang",
+    countDown: 5,
+    role: 0,
+    description: "Change nickname of all members in chat or members tagged by a format",
+    category: "box chat",
+    guide: {
+      en: "   {pn} <nick name>: change nickname of yourself"
+        + "\n   {pn} @tags <nick name>: change nickname of members tagged"
+        + "\n   {pn} all <nick name>: change nickname of all members in chat"
+        + "\n\nWith available shortcuts:"
+        + "\n   + {userName}: name of member"
+        + "\n   + {userID}: ID of member"
+        + "\n\n   Example: {pn} all {userName} 👑"
+    }
+  },
 
-	langs: {
-		vi: {
-			error: "Đã có lỗi xảy ra, thử tắt tính năng liên kết mời trong nhóm và thử lại sau"
-		},
-		en: {
-			error: "An error has occurred, try turning off the invite link feature in the group and try again later"
-		}
-	},
+  langs: {
+    en: {
+      error: "❌ An error has occurred. Please try again later.",
+      noName: "❌ Please provide a nickname to set.",
+      success: "✅ Nickname changed successfully!",
+      successMultiple: "✅ Nickname changed for {count} members successfully!"
+    }
+  },
 
-	onStart: async function ({ args, message, event, api, usersData, getLang }) {
-		const mentions = Object.keys(event.mentions);
-		let uids = [];
-		let nickname = args.join(" ");
+  onStart: async function ({ args, message, event, api, usersData, getLang }) {
+    const mentions = Object.keys(event.mentions);
+    let uids = [];
+    let nickname = args.join(" ");
 
-		if (args[0] === "all" || mentions.includes(event.threadID)) {
-			uids = (await api.getThreadInfo(event.threadID)).participantIDs;
-			nickname = args[0] === "all" ? args.slice(1).join(" ") : nickname.replace(event.mentions[event.threadID], "").trim();
-		}
-		else if (mentions.length) {
-			uids = mentions;
-			const allName = new RegExp(
-				Object.values(event.mentions)
-					.map(name => name.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")) // fix error when name has special characters
-					.join("|")
-				, "g"
-			);
-			nickname = nickname.replace(allName, "").trim();
-		}
-		else {
-			uids = [event.senderID];
-			nickname = nickname.trim();
-		}
+    if (args[0] === "all" || mentions.includes(event.threadID)) {
+      const threadInfo = await api.getThreadInfo(event.threadID);
+      uids = threadInfo.participantIDs;
+      nickname = args[0] === "all" ? args.slice(1).join(" ") : nickname.replace(event.mentions[event.threadID], "").trim();
+    } else if (mentions.length > 0) {
+      uids = mentions;
+      const allName = new RegExp(
+        Object.values(event.mentions)
+          .map(name => name.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"))
+          .join("|"),
+        "g"
+      );
+      nickname = nickname.replace(allName, "").trim();
+    } else {
+      uids = [event.senderID];
+      nickname = nickname.trim();
+    }
 
-		try {
-			const uid = uids.shift();
-			await api.changeNickname(await checkShortCut(nickname, uid, usersData), event.threadID, uid);
-		}
-		catch (e) {
-			return message.reply(getLang("error"));
-		}
+    if (!nickname) {
+      return message.reply(getLang("noName"));
+    }
 
-		for (const uid of uids)
-			await api.changeNickname(await checkShortCut(nickname, uid, usersData), event.threadID, uid);
-	}
+    try {
+      for (const uid of uids) {
+        const newNickname = await checkShortCut(nickname, uid, usersData);
+        await api.changeNickname(newNickname, event.threadID, uid);
+      }
+      
+      const successMsg = uids.length === 1 
+        ? getLang("success") 
+        : getLang("successMultiple").replace("{count}", uids.length);
+      
+      return message.reply(successMsg);
+
+    } catch (e) {
+      console.error("Setname error:", e);
+      return message.reply(getLang("error"));
+    }
+  }
 };

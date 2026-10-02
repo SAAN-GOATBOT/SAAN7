@@ -1,99 +1,92 @@
 const axios = require("axios");
 
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+
 module.exports = {
   config: {
     name: "font",
-    aliases: ["fonts"],
-    version: "0.0.7",
-    author: "Siam Ahmed Saan",
+    aliases: ["fontstyle"],
+    version: "4.3",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
     role: 0,
-    shortDescription: "🎨 Convert text to stylish",
-    longDescription: "Generate stylish fonts",
-    category: "utility",
-    guide: {
-      en: "{pn} list - Show all font styles\n{pn} <number> <text> - Convert text"
-    }
+    shortDescription: "Generate stylish fonts & see list",
+    category: "tools",
+    guide: "{pn} [text] [style_id] or {pn} list"
   },
 
-  onStart: async function({ api, event, args }) {
+  onStart: async function ({ api, event, args }) {
     const { threadID, messageID } = event;
-    
-    try { api.setMessageReaction("🎨", messageID, threadID, () => {}, true); } catch(e) {}
+    const API_URL = `${await getApiBaseUrl()}/api/font`;
 
-    if (!args.length) {
-      return api.sendMessage({
-        body: `╭─❯ USAGE:
-│╭─❯ LIST → Show all styles
-│╰─❯ <1-30> <text> Convert`
-      }, threadID, messageID);
+    if (args[0] && args[0].toLowerCase() === "list") {
+      api.setMessageReaction("📜", messageID, () => {}, true);
+      try {
+        const res = await axios.get(`${API_URL}?text=xalman&style=List`);
+        const previews = res.data.previews;
+        
+        let listMsg = "❖ 𝖥𝖮𝖭𝖳 𝖲𝖳𝖸𝖫𝖨𝖲𝖳 𝖯𝖱𝖤𝖵𝖨𝖤𝖶 ❖\n━━━━━━━━━━━━━━━━━━\n";
+        
+        for (const [id, text] of Object.entries(previews)) {
+          listMsg += `${id}. ${text}\n`;
+        }
+
+        listMsg += "━━━━━━━━━━━━━━━━━━\n𝖴𝗌𝖺𝗀𝖾: /font [text] [id]";
+        
+        return api.sendMessage(listMsg, threadID, messageID);
+      } catch (err) {
+        return api.sendMessage("✕ API Error!", threadID, messageID);
+      }
     }
 
-    const arg0 = args[0].toLowerCase();
+    const styleID = args.pop(); 
+    const text = args.join(" ");
 
-    if (arg0 === "list" || arg0 === "all") {
-      return showFontList(threadID, api, messageID);
+    if (!text || isNaN(styleID)) {
+      return api.sendMessage("╭─❍\n│ 𝖴𝗌𝖺𝗀𝖾: /font [text] [style_id]\n│ 𝖤𝗑: /font xalman 15\n╰───────────⟡", threadID, messageID);
     }
 
-    const styleNum = parseInt(arg0);
-    if (!isNaN(styleNum)) {
-      if (styleNum < 1 || styleNum > 30) {
-        try { api.setMessageReaction("❌", messageID, threadID, () => {}, true); } catch(e) {}
-        return api.sendMessage(`⚠️ Invalid style! Choose 1-30`, threadID, messageID);
+    try {
+      api.setMessageReaction("✍️", messageID, () => {}, true);
+      const res = await axios.get(`${API_URL}?text=${encodeURIComponent(text)}&style=${styleID}`);
+      
+      if (res.data.status === false) {
+        return api.sendMessage(`✕ Invalid Style!`, threadID, messageID);
       }
 
-      const text = args.slice(1).join(" ");
-      if (!text) {
-        return api.sendMessage({
-          body: `╭─❯ USAGE:\n│╰─❯ font ${styleNum} <your text>`
-        }, threadID, messageID);
-      }
+      api.setMessageReaction("✅", messageID, () => {}, true);
+      return api.sendMessage(res.data.result, threadID, messageID);
 
-      return convertFont(api, threadID, messageID, styleNum, text);
+    } catch (error) {
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return api.sendMessage("✕ API Error!", threadID, messageID);
     }
-
-    return api.sendMessage({
-      body: `╭─❯ USAGE:
-│╭─❯ LIST → Show all styles
-│╰─❯ <1-30> <text> → Convert`
-    }, threadID, messageID);
   }
 };
-
-async function convertFont(api, threadID, messageID, styleNum, text) {
-  try {
-    const url = `https://azadx69x-all-apis-top.vercel.app/api/font`;
-    const res = await axios.get(url, { params: { text, style: styleNum }, timeout: 15000 });
-
-    if (res.data && res.data.output) {
-      await api.sendMessage({ body: res.data.output }, threadID, messageID);
-      try { api.setMessageReaction("🪄", messageID, threadID, () => {}, true); } catch(e) {}
-    } else {
-      throw new Error("No output");
-    }
-  } catch (err) {
-    await api.sendMessage({ body: `❌ Failed to generate font!` }, threadID, messageID);
-    try { api.setMessageReaction("❌", messageID, threadID, () => {}, true); } catch(e) {}
-  }
-}
-
-async function showFontList(threadID, api, messageID) {
-  let message = `╭━━━━━━━━━━━━━━━╮\n│    ALL FONT STYLES\n├━━━━━━━━━━━━━━━┤\n`;
-  const previewText = "Siam Ahmed Saan";
-
-  for (let i = 1; i <= 30; i++) {
-    try {
-      const res = await axios.get("https://azadx69x-all-apis-top.vercel.app/api/font", { params: { text: previewText, style: i }, timeout: 3000 });
-      const preview = res.data.output || previewText;
-      const num = i.toString().padStart(2, '0');
-      message += `│❯ ${num}. ${preview}\n`;
-    } catch (err) {
-      const num = i.toString().padStart(2, '0');
-      message += `│❯ ${num}. ⚠️ Error\n`;
-    }
-  }
-
-  message += `├━━━━━━━━━━━━━━━┤\n│    font <1-30> <text>\n╰━━━━━━━━━━━━━━━╯`;
-
-  await api.sendMessage({ body: message }, threadID, messageID);
-  try { api.setMessageReaction("🪄", messageID, threadID, () => {}, true); } catch(e) {}
-}

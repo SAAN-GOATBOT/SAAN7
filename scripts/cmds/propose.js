@@ -7,11 +7,11 @@ module.exports = {
     config: {
         name: "propose",
         version: "3.0",
-        author: "Siam Ahmed Saan",
+        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
         countDown: 10,
         role: 0,
         description: "Propose someone with gender-based images",
-        category: "love",
+        category: "LOVE",
         guide: { en: "{p}{n} @mention | Reply | [uid]" }
     },
 

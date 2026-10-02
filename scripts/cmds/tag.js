@@ -1,15 +1,16 @@
 module.exports = {
   config: {
     name: "tag",
+    version: "3.0",
     category: "box chat",
     role: 0,
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 3,
     description: {
-      en: "Tag members by name, reply or everyone"
+      en: "Real mention users"
     },
     guide: {
-      en: "{p}tag [name] [msg]\n{p}tag all [msg]\nReply + {p}tag [msg]"
+      en: "{pm}tag [name]\n{pm}tag all\nReply + {pm}tag"
     }
   },
 
@@ -18,89 +19,62 @@ module.exports = {
 
     try {
       const threadData = await threadsData.get(threadID);
-
       const members = threadData.members
-        .filter(member => member.inGroup)
-        .map(member => ({
-          name: member.name,
-          id: member.userID
+        .filter(m => m.inGroup === true)
+        .map(m => ({
+          name: m.name || "User",
+          id: m.userID
         }));
 
       let tagUsers = [];
-      let text = "";
 
       if (messageReply) {
         const uid = messageReply.senderID;
-        const name = await usersData.getName(uid);
-
-        tagUsers.push({
-          name,
-          id: uid
-        });
-
-        text = args.join(" ");
-      }
-
-      else if (
-        args[0] &&
-        ["all", "everyone", "cdi"].includes(args[0].toLowerCase())
-      ) {
+        const name = (await usersData.getName(uid)) || "User";
+        tagUsers.push({ name, id: uid });
+      } else if (args[0] && ["all", "cdi", "everyone"].includes(args[0].toLowerCase())) {
         tagUsers = members;
-        text = args.slice(1).join(" ");
-      }
-
-      else {
+      } else {
         if (!args[0]) {
-          return api.sendMessage(
-            "⚠️ | Reply, name or all use korun.",
-            threadID,
-            messageID
-          );
+          return api.sendMessage("⚠️ Mention user or reply.", threadID, messageID);
         }
 
         const searchName = args[0].toLowerCase();
-        text = args.slice(1).join(" ");
-
-        tagUsers = members.filter(member =>
-          member.name.toLowerCase().includes(searchName)
-        );
+        tagUsers = members.filter(m => m.name.toLowerCase().includes(searchName));
 
         if (tagUsers.length === 0) {
-          return api.sendMessage(
-            "❌ | User Not Found.",
-            threadID,
-            messageID
-          );
+          return api.sendMessage("❌ User Not Found", threadID, messageID);
         }
       }
 
-      const mentions = tagUsers.map(user => ({
-        tag: user.name,
-        id: user.id
-      }));
+      const mentions = [];
+      const nameTags = [];
+      const nameCount = {};
 
-      const namesText = tagUsers
-        .map(user => `• ${user.name}`)
-        .join("\n");
+      for (const u of tagUsers) {
+        let tag = `@${u.name}`;
 
-      const body = text
-        ? `╭─ Tag Notice\n${namesText}\n├──────────\n💬 ${text}\n╰──────────`
-        : `╭─ Tag Notice\n${namesText}\n╰──────────`;
+        if (nameCount[u.name]) {
+          tag += "\u200B".repeat(nameCount[u.name]);
+          nameCount[u.name]++;
+        } else {
+          nameCount[u.name] = 1;
+        }
+
+        nameTags.push(tag);
+        mentions.push({ tag: tag, id: u.id });
+      }
+
+      const body = nameTags.join(" ");
 
       return api.sendMessage(
-        {
-          body,
-          mentions
-        },
+        { body, mentions },
         threadID,
         messageReply ? messageReply.messageID : messageID
       );
-    } catch (error) {
-      return api.sendMessage(
-        `❌ | Error: ${error.message}`,
-        threadID,
-        messageID
-      );
+
+    } catch (err) {
+      return api.sendMessage("❌ Error: " + err.message, threadID, messageID);
     }
   }
 };

@@ -1,96 +1,91 @@
-const fs = require("fs-extra");
-const path = require("path");
-const { createCanvas, loadImage } = require("canvas");
+const { createCanvas, loadImage } = require('canvas');
+const fs = require('fs-extra');
+const path = require('path');
+const axios = require('axios');
+
+const ACCESS_TOKEN = "350685531728|62f8ce9f74b12f84c123cc23437a4a32";
 
 module.exports = {
   config: {
     name: "punch",
-    aliases: ["pnch"],
-    version: "1.5",
-    author: "Toshiro Editz",
+    version: "3.5",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
-    description: "🥊 Generate a punch image for sender and tagged user",
-    category: "fun",
-    guide: {
-      en: "{pn} @tag or reply — Generate a punch image"
-    }
+    shortDescription: "Punch a user with circular avatars",
+    longDescription: "Generate a punch image (Saitama vs Goku) featuring circular avatars of the sender and the victim.",
+    category: "FUN & SOCIAL",
+    guide: "{pn} @tag or reply to a message"
   },
 
-  langs: {
-    en: {
-      noTag: "Please tag someone or reply to their message 🥊",
-      fail: "❌ | Couldn't generate punch image, please try again later."
-    }
-  },
+  onStart: async function({ event, message }) {
+    const uid1 = event.senderID;
+    let uid2;
 
-  onStart: async function ({ event, message, usersData, getLang }) {
-    const kickerID = event.senderID;
-    let kickedID = Object.keys(event.mentions || {})[0];
-    if (!kickedID && event.messageReply?.senderID) kickedID = event.messageReply.senderID;
-    if (!kickedID) return message.reply(getLang("noTag"));
+    if (event.messageReply) {
+      uid2 = event.messageReply.senderID;
+    } else {
+      const mentions = Object.keys(event.mentions || {});
+      uid2 = mentions[0];
+    }
+
+    if (!uid2) return message.reply("Please mention a user or reply to a message to punch! 👊");
+
+    async function getFbProfilePic(userId) {
+      const url = `https://graph.facebook.com/${userId}/picture?width=512&height=512&access_token=${ACCESS_TOKEN}&redirect=false`;
+      try {
+        const res = await axios.get(url);
+        return res.data.data.url;
+      } catch {
+        return `https://graph.facebook.com/${userId}/picture?width=512&height=512`;
+      }
+    }
 
     try {
-      // Get names
-      const [kickerName, kickedName] = await Promise.all([
-        usersData.getName(kickerID).catch(() => "Unknown"),
-        usersData.getName(kickedID).catch(() => "Unknown")
+      const avatar1Url = await getFbProfilePic(uid1);
+      const avatar2Url = await getFbProfilePic(uid2);
+      const templateUrl = "https://i.ibb.co.com/gbYFjcpg/a393bc56c922e3624637f7113219c2b7.jpg";
+
+      const [template, img1, img2] = await Promise.all([
+        loadImage(templateUrl),
+        loadImage(avatar1Url),
+        loadImage(avatar2Url)
       ]);
 
-      // Get avatars
-      const [kickerAvatarUrl, kickedAvatarUrl] = await Promise.all([
-        usersData.getAvatarUrl(kickerID),
-        usersData.getAvatarUrl(kickedID)
-      ]);
-
-      // Load images
-      const [kickerAvatar, kickedAvatar, baseImage] = await Promise.all([
-        loadImage(kickerAvatarUrl),
-        loadImage(kickedAvatarUrl),
-        loadImage("https://raw.githubusercontent.com/X-nil143/XGbal/refs/heads/main/Messenger_creation_25995716493353919.jpeg") // Reliable base image
-      ]);
-
-      const canvas = createCanvas(baseImage.width, baseImage.height);
+      const canvas = createCanvas(template.width, template.height);
       const ctx = canvas.getContext("2d");
 
-      // Draw background
-      ctx.drawImage(baseImage, 0, 0, baseImage.width, baseImage.height);
+      ctx.drawImage(template, 0, 0, canvas.width, canvas.height);
 
-      // Draw circular avatars
-      function drawCircleAvatar(avatar, x, y, size) {
+      function drawCircleAvatar(ctx, img, x, y, size) {
         ctx.save();
         ctx.beginPath();
         ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2, true);
         ctx.closePath();
         ctx.clip();
-        ctx.drawImage(avatar, x, y, size, size);
+        ctx.drawImage(img, x, y, size, size);
         ctx.restore();
       }
 
-      // Avatar positions
-      drawCircleAvatar(kickerAvatar, 1000, 50, 338); // sender
-      drawCircleAvatar(kickedAvatar, 80, 572, 338); // tagged / reply
+      drawCircleAvatar(ctx, img1, 210, 238, 60); 
+      drawCircleAvatar(ctx, img2, 280, 320, 60); 
 
-      // Save image
-      const savePath = path.join(__dirname, "tmp");
-      await fs.ensureDir(savePath);
-      const imgPath = path.join(savePath, `${kickerID}_${kickedID}_punch.png`);
-      await fs.writeFile(imgPath, canvas.toBuffer("image/png"));
+      const tmpDir = path.join(__dirname, 'tmp');
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
-      const text = `🥊 ${kickerName} just punched ${kickedName}!`;
-      await message.reply({
-        body: text,
-        attachment: fs.createReadStream(imgPath)
+      const filePath = path.join(tmpDir, `punch_${uid1}_${uid2}.png`);
+      fs.writeFileSync(filePath, canvas.toBuffer("image/png"));
+
+      return message.reply({
+        body: "👊💥 ONE PUNCH!!!",
+        attachment: fs.createReadStream(filePath)
+      }, () => {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
       });
 
-      // Delete temp file after 5 seconds
-      setTimeout(() => {
-        if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-      }, 5000);
-
-    } catch (err) {
-      console.error("❌ Punch command error:", err);
-      return message.reply(getLang("fail"));
+    } catch (error) {
+      console.error(error);
+      return message.reply("⚠️ Failed to generate image. Please try again later.");
     }
   }
 };

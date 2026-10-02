@@ -1,59 +1,74 @@
 const axios = require("axios");
- 
-const baseApiUrl = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
-  return base.data.mahmud;
-};
+
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
 
 module.exports = {
   config: {
     name: "emojimix",
     aliases: ["mix"],
-    version: "1.7",
-    author: "Anik Islam Sadik",
+    version: "1.0.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
-    guide: "{pn} <emoji1> <emoji2>\nExample: {pn} 🙂 😘",
-    category: "fun"
+    shortDescription: "Mix two emojis into one image",
+    category: "FUN & SOCIAL",
+    guide: "{pn} [emoji1] [emoji2]"
   },
 
-  langs: {
-    en: {
-      error: "Sorry, emoji %1 and %2 can't be mixed.",
-      success: "Emoji %1 and %2 mixed successfully!"
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID } = event;
+    const API_URL = `${await getApiBaseUrl()}/api/emojimix`;
+
+    if (args.length < 2) {
+      return api.sendMessage("╭─❍\n│ Usage: {pn} 🥺 🙏\n╰───────────⟡", threadID, messageID);
     }
-  },
 
-  onStart: async function ({ message, args, getLang }) {
-    const [emoji1, emoji2] = args;
+    const emoji1 = args[0];
+    const emoji2 = args[1];
 
-    if (!emoji1 || !emoji2) return message.SyntaxError();
+    api.setMessageReaction("🎨", messageID, () => {}, true);
 
-    const image = await generateEmojimix(emoji1, emoji2);
-    if (!image) return message.reply(getLang("error", emoji1, emoji2));
-
-    return message.reply({
-    body: getLang("success", emoji1, emoji2),
-    attachment: image
+    try {
+      const res = await axios.get(`${API_URL}?emoji1=${encodeURIComponent(emoji1)}&emoji2=${encodeURIComponent(emoji2)}`, {
+        responseType: 'stream'
       });
-     }
-   };
 
-async function generateEmojimix(emoji1, emoji2) {
-   try {
-    const apiUrl = `${await baseApiUrl()}/api/emojimix?emoji1=${encodeURIComponent(emoji1)}&emoji2=${encodeURIComponent(emoji2)}`;
-    const response = await axios.get(apiUrl, {
-    headers: { "Author": module.exports.config.author },
-    responseType: "stream"
-    });
+      api.setMessageReaction("✅", messageID, () => {}, true);
+      return api.sendMessage({
+        body: "❖ 𝗘𝗠𝗢𝗝𝗜-𝗠𝗜𝗫 ❖\n━━━━━━━━━━━━━━━━━━",
+        attachment: res.data
+      }, threadID, messageID);
 
-    if (response.data.error) {
-      return null; 
+    } catch (error) {
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return api.sendMessage("✕ These emojis cannot be mixed!", threadID, messageID);
     }
-
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch emojimix:", error.message);
-    return null;
   }
-}
+};

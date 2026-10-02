@@ -1,148 +1,231 @@
-const axios = require("axios"), fs = require("fs"), path = require("path");
+const axios = require("axios");
 
-const baseApiUrl = async () => {
-        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-        return base.data.mahmud;
-};
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+const fs = require("fs-extra");
+const path = require("path");
+const { pipeline } = require("stream");
+const { promisify } = require("util");
+
+const streamPipeline = promisify(pipeline);
+
+const CACHE_DIR = path.join(__dirname, "cache");
+
+const xalman_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36";
+
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
 
 module.exports = {
-        config: {
-                name: "album",
-                version: "2.7",
-                author: "MahMUD",
-                countDown: 10,
-                role: 0,
-                category: "media",
-                description: {
-                        en: "Watch video albums from various categories",
-                        vi: "Xem album video từ các danh mục khác nhau"
-                },
-                guide: {
-                        en: '{pn} [category/page] | {pn} add [category] (reply to video) | {pn} list [page]',
-                        vi: '{pn} [danh mục/trang] | {pn} add [danh mục] (phản hồi video) | {pn} list [trang]'
-                }
-        },
+  config: {
+    name: "album",
+    aliases: ["gallery", "alb"],
+    version: "10.1",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    role: 0,
+    category: "MEDIA",
+    shortDescription: "get category based video from API",
+    guide: "{p}album [page]"
+  },
 
-        langs: {
-                en: {
-                        noInput: "• Baby, please specify a category or reply to a video.",
-                        error: "× API error: %1. Contact MahMUD for help.\n•WhatsApp: 01836298139",
-                        invalidPage: "× Invalid page! Max page: %1",
-                        invalidSelect: " Invalid selection.",
-                        categoryNotFound: "× Category '%1' not found! Please check the list.",
-                        header: "𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐀𝐥𝐛𝐮𝐦 𝐕𝐢𝐝𝐞𝐨",
-                        footer: "\n♻ | 𝐏𝐚𝐠𝐞 [%1/%2]<😘\nℹ | 𝐓𝐲𝐩𝐞 !%3 %4 - 𝐭𝐨 𝐬𝐞𝐞 𝐧𝐞𝐱𝐭 𝐩𝐚𝐠𝐞."
-                },
-                vi: {
-                        noInput: "• Cưng ơi, vui lòng chỉ định danh mục hoặc phản hồi video.",
-                        error: "× Lỗi: %1. Liên hệ MahMUD để hỗ trợ.\n•WhatsApp: 01836298139",
-                        invalidPage: "× Trang không hợp lệ! Trang tối đa: %1",
-                        invalidSelect: "× Lựa chọn không hợp lệ.",
-                        categoryNotFound: "× Không tìm thấy danh mục '%1'! Vui lòng kiểm tra danh sách.",
-                        header: "𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐀𝐥𝐛𝐮𝐦 𝐕𝐢𝐝𝐞𝐨",
-                        footer: "\n♻ | Trang [%1/%2]<😘\nℹ | Nhập !%3 %4 - để xem trang tiếp theo."
-                }
-        },
+  onStart: async function ({ message, event, args }) {
+    const API_BASE = `${await getApiBaseUrl()}/api/category`;
+    try {
+      const catRes = await axios.get(API_BASE);
+      const allCategories =
+        catRes.data.categories || catRes.data.available_categories;
 
-        onStart: async function ({ api, event, args, message, getLang }) {
-                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
-                if (this.config.author !== authorName) return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+      if (!allCategories || !Array.isArray(allCategories)) {
+        return message.reply("⚠️ No categories found in API.");
+      }
 
-                try {
-                        if (args[0] === "add") {
-                                if (!args[1] || event.type !== "message_reply" || !event.messageReply.attachments.length) return message.reply(getLang("noInput"));
-                                api.setMessageReaction("⏳", event.messageID, () => {}, true);                                
-                                const imgurRes = await axios.get(`${await baseApiUrl()}/imgur?url=${encodeURIComponent(event.messageReply.attachments[0].url)}`);
-                                const res = await axios.post(`${await baseApiUrl()}/album/add`, { category: args[1].toLowerCase(), videoUrl: imgurRes.data.link });                                
-                                api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                                return message.reply(res.data.message);
-                        }
+      const itemsPerPage = 8;
+      const totalPages = Math.ceil(allCategories.length / itemsPerPage);
+      let page = parseInt(args[0]) || 1;
 
-                        if (args[0] === "list") {
-                                api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                                const page = parseInt(args[1]) || 1;
-                                const res = await axios.get(`${await baseApiUrl()}/api/album2/mahmud/list?page=${page}`);
-                                api.setMessageReaction("🪽", event.messageID, () => {}, true);                                
-                                if (res.data.error) return message.reply(res.data.error);
-                                return message.reply(res.data.message);
-                        }
+      if (page < 1) page = 1;
+      if (page > totalPages) page = totalPages;
 
-                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                        const configRes = await axios.get(`${await baseApiUrl()}/api/album2/mahmud/display`);
-                        const { displayNames, realCategories, captions } = configRes.data;
+      const startIndex = (page - 1) * itemsPerPage;
+      const currentPageCategories = allCategories.slice(
+        startIndex,
+        startIndex + itemsPerPage
+      );
 
-                        if (args[0] && isNaN(args[0])) {
-                                const inputCategory = args[0].toLowerCase();
-                                const matchedCategory = realCategories.find(cat => cat.toLowerCase() === inputCategory);
-                                if (!matchedCategory) {
-                                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                                        return message.reply(getLang("categoryNotFound", args[0]));
-                                }
+      const fancy = (t) =>
+        t.replace(/[a-z]/g, (c) =>
+          String.fromCodePoint(0x1d400 + c.charCodeAt(0) - 97)
+        );
+      const numStyle = (n) =>
+        String(n).replace(/[0-9]/g, (d) =>
+          String.fromCodePoint(0x1d7ec + Number(d))
+        );
 
-                                const response = await axios.get(`${await baseApiUrl()}/api/album2/mahmud/videos/${matchedCategory}?userID=${event.senderID}`);
-                                if (!response.data.success) return message.reply(response.data.message);
-                                const randomVideoUrl = response.data.videos[Math.floor(Math.random() * response.data.videos.length)];
-                                const filePath = path.join(__dirname, `cache/album_${Date.now()}.mp4`);
+      let menuText = `✨ ─── ✦ 𝐀𝐋𝐁𝐔𝐌 ✦ ─── ✨\n\n`;
+      currentPageCategories.forEach((cat, index) => {
+        menuText += ` ⚡ ${numStyle(index + 1)} ❯ ${fancy(cat)}\n`;
+      });
 
-                                const res = await axios({ url: randomVideoUrl, method: "GET", responseType: "stream", headers: { 'User-Agent': 'Mozilla/5.0' } });
-                                const writer = fs.createWriteStream(filePath);
-                                res.data.pipe(writer);
-                                
-                                writer.on("finish", () => {
-                                        api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                                        message.reply({ body: captions[matchedCategory] || captions["default"], attachment: fs.createReadStream(filePath) }, () => { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); });
-                                });
-                                writer.on("error", (err) => message.reply(getLang("error", err.message)));
-                                return;
-                        }
+      menuText += `\n📊 𝐏𝐚𝐠𝐞 [ ${numStyle(page)} / ${numStyle(
+        totalPages
+      )} ]\n`;
+      menuText += `─────────────────────\n`;
+      menuText += `↩️ Reply "p" = Previous\n`;
+      menuText += `↪️ Reply "n" = Next\n`;
+      menuText += `💬 Reply number to select\n`;
 
-                        const page = parseInt(args[0]) || 1, itemsPerPage = 10, totalPages = Math.ceil(displayNames.length / itemsPerPage);
-                    
-                        if (page < 1 || page > totalPages) {
-                                api.setMessageReaction("❌", event.messageID, () => {}, true);
-                                return message.reply(getLang("invalidPage", totalPages));
-                        }
+      return message.reply(menuText, (err, info) => {
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName: "album",
+          author: event.senderID,
+          categories: allCategories,
+          page,
+          totalPages,
+          messageID: info.messageID
+        });
+      });
+    } catch (err) {
+      return message.reply("⚠️ API Connection Error!");
+    }
+  },
 
-                        const startIndex = (page - 1) * itemsPerPage;
-                        const menu = `${getLang("header")}\n𐙚━━━━━━━━━━━━━━━━━━━━━ᡣ𐭩\n${displayNames.slice(startIndex, startIndex + itemsPerPage).map((name, i) => `${startIndex + i + 1}. ${name}`).join("\n")}\n𐙚━━━━━━━━━━━━━━━━━━━━━ᡣ𐭩${getLang("footer", page, totalPages, this.config.name, page + 1)}`;
+  onReply: async function ({ message, event, Reply }) {
+    const API_BASE = `${await getApiBaseUrl()}/api/category`;
+    const { author, categories, page, totalPages, messageID } = Reply;
+    if (event.senderID !== author) return;
 
-                        api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                        return message.reply(menu, (err, info) => {
-                                global.GoatBot.onReply.set(info.messageID, { commandName: this.config.name, messageID: info.messageID, author: event.senderID, realCategories, captions });
-                        });
-                } catch (err) {
-                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                        const errorMsg = err.response?.data?.error || err.message || "Unknown error";
-                        return message.reply(getLang("error", errorMsg));
-                }
-        },
+    const input = event.body.trim().toLowerCase();
 
-        onReply: async function ({ api, event, Reply, getLang, message }) {
-                if (event.senderID !== Reply.author) return;
-                api.unsendMessage(Reply.messageID);
-                const category = Reply.realCategories[parseInt(event.body) - 1];
-                if (!category) return message.reply(getLang("invalidSelect"));
+    const itemsPerPage = 8;
 
-                try {
-                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                     
-                        const response = await axios.get(`${await baseApiUrl()}/api/album2/mahmud/videos/${category}?userID=${event.senderID}`);                        
-                        if (!response.data.success) return message.reply(response.data.message);
-                        const randomVideoUrl = response.data.videos[Math.floor(Math.random() * response.data.videos.length)];
-                        const filePath = path.join(__dirname, `cache/album_${Date.now()}.mp4`);
-                        const res = await axios({ url: randomVideoUrl, method: "GET", responseType: "stream", headers: { 'User-Agent': 'Mozilla/5.0' } });
-                        const writer = fs.createWriteStream(filePath);
-                        res.data.pipe(writer);
+    if (input === "n" || input === "p") {
+      let newPage = page;
 
-                        writer.on("finish", () => {
-                                api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                                message.reply({ body: Reply.captions[category] || Reply.captions["default"], attachment: fs.createReadStream(filePath) }, () => { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); });
-                        });
-                        writer.on("error", (err) => message.reply(getLang("error", err.message)));
-                } catch (err) {
-                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                        const errorMsg = err.response?.data?.error || err.message || "Unknown error";
-                        return message.reply(getLang("error", errorMsg));
-                }
+      if (input === "n" && page < totalPages) newPage++;
+      if (input === "p" && page > 1) newPage--;
+
+      const startIndex = (newPage - 1) * itemsPerPage;
+      const currentPageCategories = categories.slice(
+        startIndex,
+        startIndex + itemsPerPage
+      );
+
+      const fancy = (t) =>
+        t.replace(/[a-z]/g, (c) =>
+          String.fromCodePoint(0x1d400 + c.charCodeAt(0) - 97)
+        );
+      const numStyle = (n) =>
+        String(n).replace(/[0-9]/g, (d) =>
+          String.fromCodePoint(0x1d7ec + Number(d))
+        );
+
+      let menuText = `✨ ─── ✦ 𝐀𝐋𝐁𝐔𝐌 ✦ ─── ✨\n\n`;
+      currentPageCategories.forEach((cat, index) => {
+        menuText += ` ⚡ ${numStyle(index + 1)} ❯ ${fancy(cat)}\n`;
+      });
+
+      menuText += `\n📊 𝐏𝐚𝐠𝐞 [ ${numStyle(newPage)} / ${numStyle(
+        totalPages
+      )} ]\n`;
+      menuText += `─────────────────────\n`;
+      menuText += `↩️ p | ↪️ n\n`;
+
+      message.unsend(messageID).catch(() => {});
+
+      return message.reply(menuText, (err, info) => {
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName: "album",
+          author,
+          categories,
+          page: newPage,
+          totalPages,
+          messageID: info.messageID
+        });
+      });
+    }
+
+    const startIndex = (page - 1) * itemsPerPage;
+    const currentPageCategories = categories.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
+
+    const pick = parseInt(input);
+    if (isNaN(pick) || pick < 1 || pick > currentPageCategories.length)
+      return message.reply("🔢 Invalid");
+
+    const category = currentPageCategories[pick - 1];
+
+    message.unsend(messageID).catch(() => {});
+    const wait = await message.reply(`🌀 Streaming ${category.toUpperCase()}...`);
+
+    try {
+      const res = await axios.get(`${API_BASE}?name=${category}`);
+      const mediaUrl = res.data.data;
+
+      if (!mediaUrl) {
+        message.unsend(wait.messageID);
+        return message.reply("❌ Not found");
+      }
+
+      const ext =
+        mediaUrl.split(".").pop().split("?")[0] || "mp4";
+      const filePath = path.join(
+        CACHE_DIR,
+        `stream_${Date.now()}.${ext}`
+      );
+
+      const response = await axios({
+        method: "get",
+        url: mediaUrl,
+        responseType: "stream",
+        headers: {
+          "User-Agent": xalman_UA
         }
+      });
+
+      await streamPipeline(response.data, fs.createWriteStream(filePath));
+
+      message.unsend(wait.messageID);
+
+      await message.reply({
+        body: `🎬 𝐀𝐋𝐁𝐔𝐌\n💎 ${category.toUpperCase()}`,
+        attachment: fs.createReadStream(filePath)
+      });
+
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    } catch (err) {
+      console.error(err);
+      message.reply("⚠️ Stream Failed");
+    }
+  }
 };

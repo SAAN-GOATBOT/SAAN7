@@ -30,7 +30,7 @@ module.exports = {
 			vi: "Game đoán số",
 			en: "Guess number game"
 		},
-		category: "game",
+		category: "GAMES",
 		guide: {
 			vi: "  {pn} [4 | 5 | 6] [single | multi]: tạo một bàn chơi mới, với:"
 				+ "\n    4 5 6 là số chữ số của số cần đoán, mặc định là 4."
@@ -65,44 +65,44 @@ module.exports = {
 
 	langs: {
 		vi: {
-			charts: "♕ | Bảng xếp hạng:\n%1",
+			charts: "🏆 | Bảng xếp hạng:\n%1",
 			pageInfo: "Trang %1/%2",
 			noScore: "⭕ | Hiện tại chưa có ai ghi điểm.",
-			noPermissionReset: "⚠ | Bạn không có quyền reset bảng xếp hạng.",
-			notFoundUser: "⚠ | Không tìm thấy người dùng có id %1 trong bảng xếp hạng.",
-			userRankInfo: "♕ | Thông tin xếp hạng:\nTên: %1\nĐiểm: %2\nSố lần chơi: %3\nSố lần thắng: %4\n%5\nSố lần thua: %6\nTỉ lệ thắng: %7%\nTổng thời gian chơi: %8",
+			noPermissionReset: "⚠️ | Bạn không có quyền reset bảng xếp hạng.",
+			notFoundUser: "⚠️ | Không tìm thấy người dùng có id %1 trong bảng xếp hạng.",
+			userRankInfo: "🏆 | Thông tin xếp hạng:\nTên: %1\nĐiểm: %2\nSố lần chơi: %3\nSố lần thắng: %4\n%5\nSố lần thua: %6\nTỉ lệ thắng: %7%\nTổng thời gian chơi: %8",
 			digits: "%1 chữ số: %2",
-			resetRankSuccess: "✓ | Reset bảng xếp hạng thành công.",
-			invalidCol: "⚠ | Vui lòng nhập số chữ số của số cần đoán là 4, 5 hoặc 6",
-			invalidMode: "⚠ | Vui lòng nhập chế độ chơi là single hoặc multi",
-			created: "✓ | Tạo bàn chơi thành công.",
+			resetRankSuccess: "✅ | Reset bảng xếp hạng thành công.",
+			invalidCol: "⚠️ | Vui lòng nhập số chữ số của số cần đoán là 4, 5 hoặc 6",
+			invalidMode: "⚠️ | Vui lòng nhập chế độ chơi là single hoặc multi",
+			created: "✅ | Tạo bàn chơi thành công.",
 			gameName: "GAME ĐOÁN SỐ",
 			gameGuide: "⏳ | Cách chơi:\nBạn có %1 lần đoán.\nSau mỗi lần đoán, bạn sẽ nhận được thêm gợi ý là số lượng chữ số đúng (hiển thị bên trái) và số lượng chữ số đúng vị trí (hiển thị bên phải).",
 			gameNote: "📄 | Lưu ý:\nSố được hình thành với các chữ số từ 0 đến 9, mỗi chữ số xuất hiện duy nhất một lần và số có thể đứng đầu là 0.",
 			replyToPlayGame: "🎮 | Phản hồi tin nhắn hình ảnh bên dưới kèm theo %1 số bạn đoán để chơi game.",
-			invalidNumbers: "⚠ | Vui lòng nhập %1 số bạn muốn đoán",
-			win: "★ | Chúc mừng bạn đã đoán đúng số %1 sau %2 lần đoán và nhận được %3 điểm thưởng.",
-			loss: "✗ | Bạn đã thua, số đúng là %1."
+			invalidNumbers: "⚠️ | Vui lòng nhập %1 số bạn muốn đoán",
+			win: "🎉 | Chúc mừng bạn đã đoán đúng số %1 sau %2 lần đoán và nhận được %3 điểm thưởng.",
+			loss: "🤦‍♂️ | Bạn đã thua, số đúng là %1."
 		},
 		en: {
-			charts: "♕ | Ranking:\n%1",
+			charts: "🏆 | Ranking:\n%1",
 			pageInfo: "Page %1/%2",
 			noScore: "⭕ | There is no one who has scored.",
-			noPermissionReset: "⚠ | You do not have permission to reset the ranking.",
-			notFoundUser: "⚠ | Could not find user with id %1 in the ranking.",
-			userRankInfo: "♕ | Ranking information:\nName: %1\nScore: %2\nNumber of games: %3\nNumber of wins: %4\n%5\nNumber of losses: %6\nWin rate: %7%\nTotal play time: %8",
+			noPermissionReset: "⚠️ | You do not have permission to reset the ranking.",
+			notFoundUser: "⚠️ | Could not find user with id %1 in the ranking.",
+			userRankInfo: "🏆 | Ranking information:\nName: %1\nScore: %2\nNumber of games: %3\nNumber of wins: %4\n%5\nNumber of losses: %6\nWin rate: %7%\nTotal play time: %8",
 			digits: "%1 digits: %2",
-			resetRankSuccess: "✓ | Reset the ranking successfully.",
-			invalidCol: "⚠ | Please enter the number of digits of the number to guess is 4, 5 or 6",
-			invalidMode: "⚠ | Please enter the game mode is single or multi",
-			created: "✓ | Create game successfully.",
+			resetRankSuccess: "✅ | Reset the ranking successfully.",
+			invalidCol: "⚠️ | Please enter the number of digits of the number to guess is 4, 5 or 6",
+			invalidMode: "⚠️ | Please enter the game mode is single or multi",
+			created: "✅ | Create game successfully.",
 			gameName: "GUESS NUMBER GAME",
 			gameGuide: "⏳ | How to play:\nYou have %1 guesses.\nAfter each guess, you will get additional hints of the number of correct digits (shown on the left) and the number of correct digits (shown on the right).",
 			gameNote: "📄 | Note:\nThe number is formed with digits from 0 to 9, each digit appears only once and the number can start with 0.",
 			replyToPlayGame: "🎮 | Reply to the message below with the image of %1 numbers you guess to play the game.",
-			invalidNumbers: "⚠ | Please enter %1 numbers you want to guess",
-			win: "★ | Congratulations you guessed the number %1 after %2 guesses and received %3 bonus points.",
-			loss: "✗ | You lost, the correct number is %1."
+			invalidNumbers: "⚠️ | Please enter %1 numbers you want to guess",
+			win: "🎉 | Congratulations you guessed the number %1 after %2 guesses and received %3 bonus points.",
+			loss: "🤦‍♂️ | You lost, the correct number is %1."
 		}
 	},
 
