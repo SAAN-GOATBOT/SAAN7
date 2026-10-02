@@ -12,7 +12,7 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, threadsData, message }) {
-    const SUPPORT_TID = "1473334461095677";
+    const SUPPORT_TID = "6298075880212390";
     const UID = event.senderID;
 
     try {
