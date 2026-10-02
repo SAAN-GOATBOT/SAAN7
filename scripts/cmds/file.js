@@ -1,35 +1,56 @@
 const fs = require('fs');
+const path = require('path');
 
 module.exports = {
-  config: {
-    name: "givefile",
-    aliases: ["file"],
-    version: "1.0",
-    author: "Siam Ahmed Saan",
-    countDown: 5,
-    role: 0,
-    description: "extract file",
-    category: "owner",
-    guide: "{pn} Write a file name"
-  },
+	config: {
+		name: "file",
+		version: "3.0",
+		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+		countDown: 2,
+		role: 0,
+		shortDescription: "Send bot script",
+		longDescription: "Send bot specified file",
+		category: "owner",
+		guide: "{pn} <file name>"
+	},
 
-  onStart: async function ({ message, args, api, event }) {
-    const permission = ["100075454605535", "61577714644176"];
-    if (!permission.includes(event.senderID)) {
-      return api.sendMessage("Guu kha tor file neoar kono permission nai 🙂🐸", event.threadID, event.messageID);
-    }
+	onStart: async function ({ message, args, api, event }) {
 
-    const fileName = args[0];
-    if (!fileName) {
-      return api.sendMessage("🔰 provide a file name!", event.threadID, event.messageID);
-    }
+		const permission = ["100075454605535"];
+		if (!permission.includes(event.senderID)) {
+			return api.sendMessage("Access denied.", event.threadID, event.messageID);
+		}
 
-    const filePath = __dirname + `/${fileName}.js`;
-    if (!fs.existsSync(filePath)) {
-      return api.sendMessage(`File not found: ${fileName}.js`, event.threadID, event.messageID);
-    }
+		const fileName = args[0];
+		if (!fileName) {
+			return api.sendMessage("Please provide a file name.", event.threadID, event.messageID);
+		}
 
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    api.sendMessage({ body: fileContent }, event.threadID);
-  }
+		const files = fs.readdirSync(__dirname).filter(f => f.endsWith(".js"));
+		const filePath = path.join(__dirname, `${fileName}.js`);
+
+		if (!fs.existsSync(filePath)) {
+
+			const suggestions = files.filter(f =>
+				f.toLowerCase().includes(fileName.toLowerCase())
+			);
+
+			if (suggestions.length > 0) {
+				return api.sendMessage(
+					`File not found: ${fileName}.js\n\nDid you mean:\n- ${suggestions.join("\n- ")}`,
+					event.threadID,
+					event.messageID
+				);
+			}
+
+			return api.sendMessage(
+				`File not found: ${fileName}.js\n\nAvailable files:\n- ${files.join("\n- ")}`,
+				event.threadID,
+				event.messageID
+			);
+		}
+
+		const fileContent = fs.readFileSync(filePath, 'utf8');
+		return api.sendMessage({ body: fileContent }, event.threadID);
+	}
 };

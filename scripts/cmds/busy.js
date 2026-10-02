@@ -14,10 +14,10 @@ module.exports = {
 		},
 		category: "box chat",
 		guide: {
-			vi: " {pn} [để trống | <lý do>]: bật chế độ không làm phiền"
-				+ "\n {pn} off: tắt chế độ không làm phiền",
-			en: " {pn} [empty | <reason>]: turn on do not disturb mode"
-				+ "\n {pn} off: turn off do not disturb mode"
+			vi: "   {pn} [để trống | <lý do>]: bật chế độ không làm phiền"
+				+ "\n   {pn} off: tắt chế độ không làm phiền",
+			en: "   {pn} [empty | <reason>]: turn on do not disturb mode"
+				+ "\n   {pn} off: turn off do not disturb mode"
 		}
 	},
 

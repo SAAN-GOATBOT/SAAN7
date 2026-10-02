@@ -1,55 +1,60 @@
-const fs = require("fs-extra");
-const path = require("path");
-const https = require("https");
 const axios = require("axios");
 
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
 module.exports = {
   config: {
     name: "hentai",
     version: "1.0",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "Send safe cute anime illustration" },
-    longDescription: { en: "Fetches safe (non-R18) anime images from lolicon API" },
-    category: "fun",
-    guide: { en: "+hentai" }
+    shortDescription: "Random hentai image",
+    longDescription: "Get hentai image from API",
+    category: "NSFW",
+    guide: "{pn}"
   },
 
-  onStart: async function({ message }) {
+  onStart: async function ({ message }) {
     try {
-      const res = await axios.post("https://api.lolicon.app/setu/v2", {
-        r18: 0,
-        num: 1
+      const url = `${await getApiBaseUrl()}/api/hentai`;
+
+      const stream = await global.utils.getStreamFromURL(url);
+
+      await message.reply({
+        body: "✨ 𝗛𝗲𝗿𝗲'𝘀 𝘆𝗼𝘂𝗿 𝗶𝗺𝗮𝗴𝗲 ✨\n\n🖼️ Enjoy the view!",
+        attachment: stream
       });
 
-      if (!res.data || !res.data.data || res.data.data.length === 0) {
-        return message.reply("❌ কোনো ছবি পাওয়া যায়নি।");
-      }
-
-      const imageUrl = res.data.data[0].urls.original || res.data.data[0].urls.regular;
-      const filePath = path.join(__dirname, "cache/hentai.jpg");
-
-      const file = fs.createWriteStream(filePath);
-      https.get(imageUrl, resImg => {
-        resImg.pipe(file);
-        file.on("finish", () => {
-          const caption = `
-✨ 𝓒𝓾𝓽𝓮 𝓗𝓮𝓷𝓽𝓪𝓲 𝓑𝓪𝓫𝔂 ✨
-
-🌸 𝐀𝐩𝐢 𝐂𝐫𝐞𝐝𝐢𝐭: 𝐂𝐡𝐢𝐭𝐫𝐨𝐧 𝐁𝐡𝐚𝐭𝐭𝐚𝐜𝐡𝐚𝐫𝐣𝐞𝐞
-          `;
-          message.reply({
-            body: caption.trim(),
-            attachment: fs.createReadStream(filePath)
-          });
-        });
-      }).on("error", () => {
-        message.reply("❌ ছবি ডাউনলোডে সমস্যা হয়েছে।");
-      });
-
-    } catch {
-      message.reply("❌ ছবি আনতে সমস্যা হয়েছে।");
+    } catch (err) {
+      console.error(err);
+      message.reply("❌ | Failed to fetch image");
     }
   }
 };

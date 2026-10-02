@@ -1,58 +1,61 @@
 const axios = require("axios");
-const fs = require("fs");
+const DIG = require("discord-image-generation");
+const fs = require("fs-extra");
 const path = require("path");
-
-const baseApiUrl = async () => {
-  const base = await axios.get(
-    "https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json"
-  );
-  return base.data.mahmud;
-};
-
-/**
-* @author MahMUD
-* @author: do not delete it
-*/
 
 module.exports = {
   config: {
     name: "trash",
-    aliases: [],
-    version: "1.7",
-    author: "MahMUD",
+    aliases: ["dustbin"],
+    version: "1.0.1",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
     role: 0,
-    category: "fun",
-    cooldown: 10,
-    guide: "rip [mention-reply-UID]",
+    shortDescription: "কাউকে ডাস্টবিনে ফেলার ছবি",
+    longDescription: "Create a Trash image with user avatar in a dustbin",
+    category: "FUN & SOCIAL",
+    guide: {
+      en: "{pn} [@mention / reply / UID]"
+    }
   },
 
   onStart: async function ({ api, event, args }) {
-     const obfuscatedAuthor = String.fromCharCode(77, 97, 104, 77, 85, 68);
-     if (module.exports.config.author !== obfuscatedAuthor) {
-     return api.sendMessage(
-     "You are not authorized to change the author name.", event.threadID, event.messageID );
-   }
+    const { threadID, messageID, mentions, type, messageReply, senderID } = event;
+    let targetID;
 
-    const { threadID, messageID, messageReply, mentions } = event;
-    let id2; if (messageReply) { id2 = messageReply.senderID; } else if (Object.keys(mentions).length > 0) {
-    id2 = Object.keys(mentions)[0];  } else if (args[0]) {  id2 = args[0]; } else {
-    return api.sendMessage( "baby, Mention, reply, or provide UID of the target.", threadID, messageID );
-  }
-
-   try {
-    const url = `${await baseApiUrl()}/api/dig?type=trash&user=${id2}`;
-    const response = await axios.get(url, { responseType: "arraybuffer" });
-    const filePath = path.join(__dirname, `trash_${id2}.png`);
-    fs.writeFileSync(filePath, response.data);
-
-     
-    api.sendMessage({ attachment: fs.createReadStream(filePath),
-    body: `🙂😎`,
-     },
-    threadID, () => fs.unlinkSync(filePath),  messageID );
-  } catch (err) {
-    console.error(err);
-    api.sendMessage(`🥹error, contact MahMUD.`, threadID, messageID);
+    if (type === "message_reply") {
+      targetID = messageReply.senderID;
+    } else if (Object.keys(mentions).length > 0) {
+      targetID = Object.keys(mentions)[0];
+    } else if (args.length > 0 && !isNaN(args[0])) {
+      targetID = args[0];
+    } else {
+      targetID = senderID;
     }
-  },
+
+    try {
+      const avatarURL = `https://graph.facebook.com/${targetID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+      
+      const avatarRes = await axios.get(avatarURL, { responseType: 'arraybuffer' });
+      const avatarBuffer = Buffer.from(avatarRes.data, 'utf-8');
+
+      const img = await new DIG.Trash().getImage(avatarBuffer);
+      
+      const cacheDir = path.join(__dirname, 'cache');
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+      const pathSave = path.join(cacheDir, `trash_${targetID}.png`);
+
+      fs.writeFileSync(pathSave, Buffer.from(img));
+
+      return api.sendMessage({
+        attachment: fs.createReadStream(pathSave)
+      }, threadID, () => {
+        if (fs.existsSync(pathSave)) fs.unlinkSync(pathSave);
+      }, messageID);
+
+    } catch (error) {
+      console.error(error);
+      return api.sendMessage("command error ❌", threadID, messageID);
+    }
+  }
 };

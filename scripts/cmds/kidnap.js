@@ -4,7 +4,7 @@ const path = require("path");
 
 const xalman_TOKEN = "350685531728|62f8ce9f74b12f84c123cc23437a4a32";
 
-const access = ["61590594545013"];
+const access = ["61570641868681", "61574478201014"];
 
 const backgrounds = [
   "https://i.imgur.com/28OfsDZ.jpeg"
@@ -15,12 +15,12 @@ module.exports = {
     name: "kidnap",
     aliases: ["kdnp"],
     version: "3.3",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     role: 0,
     countDown: 5,
     shortDescription: "Make a kidnap-style image",
     longDescription: "Generate a kidnap-themed image using tagged user avatars.",
-    category: "fun",
+    category: "FUN & SOCIAL",
     guide: { en: "{pn} @mention | reply | uid" }
   },
 

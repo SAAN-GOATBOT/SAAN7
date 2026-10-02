@@ -1,66 +1,72 @@
 const axios = require("axios");
 
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+
 module.exports = {
   config: {
     name: "nanobanana",
-    aliases: ["nanob", "nbedit", "edit"],
-    version: "1.0",
-    author: "Neoaz ゐ", //API by RIFAT
+    aliases: ["nb"],
+    version: "1.2",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 10,
     role: 0,
-    shortDescription: { en: "Generate or edit image with Nano Banana" },
-    longDescription: { en: "Generate or edit images using Nano Banana AI model" },
-    category: "image",
-    guide: {
-      en: "{pn} <prompt> - Generate image\nReply to an image with: {pn} <prompt> - Edit image"
-    }
+    shortDescription: "Generate images using Nano Banana AI",
+    longDescription: "Generate high-quality images from text prompts using Xalman's Nano Banana API",
+    category: "AI",
+    guide: "{pn} <prompt>"
   },
 
-  onStart: async function ({ message, event, api, args }) {
-    const hasPrompt = args.length > 0;
-    const hasPhotoReply = event.type === "message_reply" && event.messageReply?.attachments?.[0]?.type === "photo";
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID } = event;
+    const prompt = args.join(" ");
 
-    if (!hasPrompt && !hasPhotoReply) {
-      return message.reply("Please provide a prompt or reply to an image.");
+    if (!prompt) {
+      return api.sendMessage("Please provide a prompt to generate an image.", threadID, messageID);
     }
 
-    const prompt = args.join(" ").trim();
-    const isEdit = hasPhotoReply;
-    const model = isEdit ? "nano banana edit" : "nano banana";
-
     try {
-      api.setMessageReaction("⏳", event.messageID, () => {}, true);
+      api.setMessageReaction("🎨", messageID, () => {}, true);
+      
+      const url = `${await getApiBaseUrl()}/api/nb?prompt=${encodeURIComponent(prompt)}`;
+      const response = await axios.get(url, { responseType: "stream" });
 
-      const imageUrl = hasPhotoReply ? event.messageReply.attachments[0].url : undefined;
+      await api.sendMessage({
+        body: "𝗡𝗔𝗡𝗢𝗕𝗔𝗡𝗔𝗡𝗔 𝗔𝗜 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗘𝗗 🎨",
+        attachment: response.data
+      }, threadID, messageID);
 
-      const res = await axios.get("https://fluxcdibai-1.onrender.com/generate", {
-        params: {
-          prompt,
-          model,
-          ...(imageUrl ? { imageUrl } : {})
-        },
-        timeout: 120000
-      });
+      return api.setMessageReaction("✅", messageID, () => {}, true);
 
-      const data = res.data;
-      const resultUrl = data?.data?.imageResponseVo?.url;
-
-      if (!resultUrl) {
-        api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return message.reply("Failed to process image.");
-      }
-
-      api.setMessageReaction("✅", event.messageID, () => {}, true);
-
-      await message.reply({
-        body: isEdit ? "Image edited 🐦" : "Image generated 🐦",
-        attachment: await global.utils.getStreamFromURL(resultUrl)
-      });
-
-    } catch (err) {
-      console.error(err);
-      api.setMessageReaction("❌", event.messageID, () => {}, true);
-      return message.reply("Error while processing image.");
+    } catch (error) {
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return api.sendMessage("Failed to generate image. Please try again later.", threadID, messageID);
     }
   }
 };

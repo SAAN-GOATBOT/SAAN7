@@ -1,60 +1,65 @@
 const axios = require('axios');
 
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+
 module.exports = {
-	config: {
-		name: "waifu",
-		aliases: ["waifu, neko"],
-		version: "1.0",
-		author: "Siam Ahmed Saan",
-		countDown: 5,
-		role: 0,
-		shortDescription: "get random waifu",
-		longDescription: "",
-		category: "anime",
-		guide: "{pn} {{<name>}}"
-	},
+    config: {
+        name: "waifu",
+        version: "3.0",
+        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+        countDown: 5,
+        role: 0,
+        shortDescription: "Get random anime waifu images",
+        category: "ANIME",
+        guide: "{pn}"
+    },
 
-	onStart: async function ({ message, args }) {
-		const name = args.join(" ");
-		if (!name)
+    onStart: async function ({ api, event }) {
+        const { threadID, messageID } = event;
+        api.setMessageReaction("🌸", messageID, () => {}, true);
 
-			try {
-				let res = await axios.get(`https://api.waifu.pics/sfw/waifu`)
+        try {
+            const res = await axios.get(`${await getApiBaseUrl()}/api/waifu`);
+            const imgUrl = res.data.url;
 
+            const stream = (await axios.get(imgUrl, { responseType: 'stream' })).data;
 
-				let res2 = res.data
-				let img = res2.url
+            api.setMessageReaction("✅", messageID, () => {}, true);
+            return api.sendMessage({
+                body: "❖ 𝗪𝗔𝗜𝗙𝗨 𝗜𝗠𝗔𝗚𝗘 ❖\n━━━━━━━━━━━━━━━━━━\n",
+                attachment: stream
+            }, threadID, messageID);
 
-				const form = {
-					body: `𝗔𝗶 𝗱𝗲𝗸𝗵 🅜🅐🅡🅤🅕 𝗲𝗿 𝗯𝗼𝘂🌚😬`
-
-				};
-				if (img)
-					form.attachment = await global.utils.getStreamFromURL(img);
-				message.reply(form);
-			} catch (e) {
-				message.reply(`🥺 Not Found`)
-			}
-
-
-		else {
-
-			try {
-				let res = await axios.get(`https://api.waifu.pics/sfw/${name}`)
-
-
-				let res2 = res.data
-				let img1 = res2.url
-
-				const form = {
-					body: `   「 maruf 𝚁𝙰𝙽𝙳𝙾𝙼 𝚆𝙰𝙸𝙵𝚄 」   `
-
-				};
-				if (img1)
-					form.attachment = await global.utils.getStreamFromURL(img1);
-				message.reply(form);
-			} catch (e) { message.reply(`🥺 No waifu 🥲 \n category: waifu, neko, shinobu, megumin, bully, cuddle, cry, kiss, lick, hug, awoo, pat, smug, bonk, yeet, blush, smile, wave, highfive, handhold, nom, bite, glomp, slap, kill, kick, happy, wink, poke, dance, cringe `) }
-
-		}
-	}
+        } catch (error) {
+            api.setMessageReaction("❌", messageID, () => {}, true);
+            return api.sendMessage("✕ Failed to fetch anime image!", threadID, messageID);
+        }
+    }
 };

@@ -1,90 +1,133 @@
-const axios = require('axios');
-const fs = require('fs-extra');
-const path = require('path');
+const axios = require("axios");
 
-const BASE_API = "https://metabyneokex.vercel.app/videos";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
 
-async function downloadFile(url, tempDir, filename) {
-    const tempFilePath = path.join(tempDir, filename);
-    try {
-        const response = await axios({
-            method: 'get',
-            url: url,
-            responseType: 'arraybuffer',
-            timeout: 180000
-        });
-        await fs.writeFile(tempFilePath, response.data);
-        return tempFilePath;
-    } catch (e) {
-        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
-        throw new Error(`Failed to download video: ${e.message}`);
-    }
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
 }
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-    config: {
-        name: "animate",
-        aliases: ["anim", "vido", "mvid"],
-        version: "2.0",
-        author: "Siam Ahmed Saan",
-        countDown: 30,
-        role: 0,
-        longDescription: "Generate or edit videos using Meta AI.",
-        category: "ai-video",
-        guide: {
-            en: "To generate: {pn} <prompt>\nTo animate image: Reply to an image with {pn} <prompt>"
-        }
-    },
+  config: {
+    name: "animate",
+    version: "1.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 10,
+    role: 0,
+    shortDescription: "Animate an image using Wan-Video AI",
+    longDescription: "Reply to an image with a prompt to generate an animated video",
+    category: "AI",
+    guide: "{pn} <prompt>\nExample: /animate cinematic motion\nReply to an image to animate it."
+  },
 
-    onStart: async function({ message, args, event, api }) {
-        const prompt = args.join(" ");
-        const cacheDir = path.join(__dirname, 'cache');
-        if (!fs.existsSync(cacheDir)) await fs.mkdirp(cacheDir);
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID, messageReply } = event;
+    const cacheDir = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-        if (!prompt) return message.reply("Please provide a prompt.");
-
-        const isEdit = event.type === "message_reply" && event.messageReply.attachments && event.messageReply.attachments[0].type === "photo";
-        
-        const endpoint = isEdit ? `${BASE_API}/edit` : `${BASE_API}/generate`;
-        const params = {
-            prompt: prompt,
-            poll_attempts: 25,
-            poll_wait_seconds: 3
-        };
-
-        if (isEdit) {
-            params.img_url = event.messageReply.attachments[0].url;
-        }
-
-        message.reaction("⏳", event.messageID);
-
-        try {
-            const response = await axios.get(endpoint, {
-                params: params,
-                timeout: 350000
-            });
-
-            const data = response.data;
-            if (!data.success || !data.video_urls || data.video_urls.length === 0) {
-                throw new Error("Action failed or API returned no video.");
-            }
-
-            const videoUrl = data.video_urls[0];
-            const videoPath = await downloadFile(videoUrl, cacheDir, `meta_vid_${Date.now()}.mp4`);
-
-            await message.reply({
-                attachment: fs.createReadStream(videoPath)
-            });
-
-            message.reaction("✅", event.messageID);
-            setTimeout(() => {
-                if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
-            }, 10000);
-
-        } catch (error) {
-            message.reaction("❌", event.messageID);
-            const errMsg = error.response?.data?.detail?.[0]?.msg || error.message;
-            message.reply(`❌ Error: ${errMsg}`);
-        }
+    if (!messageReply || !messageReply.attachments || messageReply.attachments.length === 0) {
+      return api.sendMessage("❌ Please reply to an image.", threadID, messageID);
     }
+
+    const attachment = messageReply.attachments[0];
+    if (attachment.type !== "photo" && attachment.type !== "animated_image") {
+      return api.sendMessage("❌ Please reply to an image (photo).", threadID, messageID);
+    }
+
+    const prompt = args.join(" ").trim();
+    if (!prompt) {
+      return api.sendMessage("✨ Please enter a prompt!\nExample: /animate cinematic motion", threadID, messageID);
+    }
+
+    const imageUrl = attachment.url;
+
+    api.setMessageReaction("⏳", messageID, () => {}, true);
+
+    const maxRetries = 2;
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const apiUrl = `${await getApiBaseUrl()}/api/animate?image=${encodeURIComponent(imageUrl)}&prompt=${encodeURIComponent(prompt)}`;
+
+        const response = await axios.get(apiUrl, {
+          timeout: 120000,
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "video/*, application/json"
+          },
+          responseType: "arraybuffer"
+        });
+
+        const contentType = response.headers["content-type"] || "";
+
+        if (contentType.includes("video")) {
+          const ext = contentType.split("/")[1]?.split(";")[0] || "mp4";
+          const filePath = path.join(cacheDir, `animate_${Date.now()}.${ext}`);
+          fs.writeFileSync(filePath, Buffer.from(response.data));
+
+          api.setMessageReaction("✅", messageID, () => {}, true);
+
+          const msg = `🎬 𝗔𝗡𝗜𝗠𝗔𝗧𝗘𝗗 𝗩𝗜𝗗𝗘𝗢\n━━━━━━━━━━━━━━━━━━\n📝 Prompt: ${prompt}`;
+
+          return api.sendMessage(
+            {
+              body: msg,
+              attachment: fs.createReadStream(filePath)
+            },
+            threadID,
+            () => {
+              if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            },
+            messageID
+          );
+        } else {
+          const textData = response.data.toString("utf8");
+          try {
+            const jsonData = JSON.parse(textData);
+            if (jsonData.status === false) {
+              throw new Error(jsonData.message || "API error");
+            } else {
+              throw new Error(textData.substring(0, 200) || "Invalid API response");
+            }
+          } catch (parseError) {
+            throw new Error(textData.substring(0, 200) || "Invalid API response");
+          }
+        }
+      } catch (error) {
+        lastError = error;
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          continue;
+        }
+      }
+    }
+
+    api.setMessageReaction("❌", messageID, () => {}, true);
+    return api.sendMessage("❌ Failed to animate image.", threadID, messageID);
+  }
 };

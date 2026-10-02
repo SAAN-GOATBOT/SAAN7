@@ -1,86 +1,95 @@
-const fs = require("fs");
-const path = require("path");
-const axios = require("axios");
-const { loadImage, createCanvas } = require("canvas");
+const axios = require('axios');
+const fs = require('fs-extra');
+const path = require('path');
+const { createCanvas, loadImage } = require('canvas');
 
 module.exports = {
-  config: {
-    name: "kiss",
-    version: "1.5",
-    author: "Amit Max ⚡",
-    countDown: 5,
-    role: 0,
-    shortDescription: "A fun kiss picture!",
-    longDescription: "A fun command to create a kiss picture with the given positions.",
-    category: "fun",
-    guide: "{pn} @mention or reply",
-  },
+    config: {
+        name: "kiss",
+        version: "3.5.0",
+        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+        countDown: 5,
+        role: 0,
+        description: "Kiss someone using mention, reply, or UID",
+        category: "LOVE",
+        guide: { en: "{p}{n} @mention | Reply to a message | {p}{n} [uid]" }
+    },
 
-  onStart: async function ({ event, api, usersData }) {
-    let mention = Object.keys(event.mentions)[0];
-    let targetID = mention || event.messageReply?.senderID;
+    onStart: async function ({ api, event, args, usersData }) {
+        const { threadID, messageID, senderID, mentions, type, messageReply } = event;
+        
+        let mentionID;
+        if (type === "message_reply") {
+            mentionID = messageReply.senderID;
+        } else if (Object.keys(mentions).length > 0) {
+            mentionID = Object.keys(mentions)[0];
+        } else if (args[0]) {
+            mentionID = args[0];
+        }
 
-    if (!targetID)
-      return api.sendMessage("কাকে চুমু দিবে? ট্যাগ কর বা কারো রিপ্লাই দাও!", event.threadID, event.messageID);
+        if (!mentionID) return api.sendMessage("Please mention someone, reply to a message, or provide a UID! 🌧️", threadID, messageID);
 
-    const senderID = event.senderID;
+        try {
+            const senderInfo = await usersData.get(senderID);
+            const mentionInfo = await usersData.get(mentionID);
 
-    const getAvatar = async (uid) => {
-      try {
-        const url = `https://graph.facebook.com/${uid}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
-        const avatarPath = path.join(__dirname, `${uid}_avatar.png`);
-        const res = await axios.get(url, { responseType: "arraybuffer" });
-        fs.writeFileSync(avatarPath, res.data);
-        return avatarPath;
-      } catch (err) {
-        console.error(`Error fetching avatar for user ${uid}: ${err.message}`);
-        return "";
-      }
-    };
+            const senderName = senderInfo.name;
+            const mentionName = mentionInfo.name;
+            const senderGender = senderInfo.gender; 
 
-    const bg = await loadImage("https://i.imgur.com/VniSzhD.png"); 
-    const canvas = createCanvas(bg.width, bg.height);
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(bg, 0, 0);
+            const backgroundUrl = "https://i.ibb.co/jjhvv0j/74e00c6d62a7.jpg";
+            const avatarSenderUrl = `https://graph.facebook.com/${senderID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+            const avatarMentionUrl = `https://graph.facebook.com/${mentionID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
-    const senderAvatarPath = await getAvatar(senderID);
-    const targetAvatarPath = await getAvatar(targetID);
+            const [bgImg, avatarSender, avatarMention] = await Promise.all([
+                loadImage(backgroundUrl),
+                loadImage(avatarSenderUrl),
+                loadImage(avatarMentionUrl)
+            ]);
 
-    const senderAvatar = await loadImage(senderAvatarPath);
-    const targetAvatar = await loadImage(targetAvatarPath);
+            const canvas = createCanvas(bgImg.width, bgImg.height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
-    
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(340, 120, 60, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(targetAvatar, 280, 60, 120, 120);
-    ctx.restore();
+            let senderPos, mentionPos;
 
-    
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(500, 70, 60, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(senderAvatar, 440, 10, 120, 120);
-    ctx.restore();
+            if (senderGender === 2) { 
+                senderPos = { x: 240, y: 190, r: 40 };
+                mentionPos = { x: 320, y: 250, r: 40 };
+            } else {
+                senderPos = { x: 320, y: 250, r: 40 };
+                mentionPos = { x: 240, y: 190, r: 40 };
+            }
 
-    const output = path.join(__dirname, "kiss_output.png");
-    fs.writeFileSync(output, canvas.toBuffer("image/png"));
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(senderPos.x, senderPos.y, senderPos.r, 0, Math.PI * 2, true);
+            ctx.clip();
+            ctx.drawImage(avatarSender, senderPos.x - senderPos.r, senderPos.y - senderPos.r, senderPos.r * 2, senderPos.r * 2);
+            ctx.restore();
 
-    const senderName = await usersData.getName(senderID);
-    const targetName = event.mentions[mention] || (event.messageReply?.senderName || "Friend");
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(mentionPos.x, mentionPos.y, mentionPos.r, 0, Math.PI * 2, true);
+            ctx.clip();
+            ctx.drawImage(avatarMention, mentionPos.x - mentionPos.r, mentionPos.y - mentionPos.r, mentionPos.r * 2, mentionPos.r * 2);
+            ctx.restore();
 
-    api.sendMessage({
-      body: `❤️ Kiss time! \n${senderName} gave a kiss to ${targetName}! 💋`,
-      attachment: fs.createReadStream(output),
-      mentions: [{ tag: targetName, id: targetID }],
-    }, event.threadID, () => {
-      fs.unlinkSync(output);
-      fs.unlinkSync(senderAvatarPath);
-      fs.unlinkSync(targetAvatarPath);
-    }, event.messageID);
-  }
+            const cachePath = path.join(__dirname, 'cache', `kiss_${Date.now()}.png`);
+            if (!fs.existsSync(path.join(__dirname, 'cache'))) fs.mkdirSync(path.join(__dirname, 'cache'));
+            fs.writeFileSync(cachePath, canvas.toBuffer());
+
+            return api.sendMessage({
+                body: `${senderName} kissed ${mentionName} 💋`,
+                attachment: fs.createReadStream(cachePath)
+            }, threadID, () => {
+                if (fs.existsSync(cachePath)) fs.unlinkSync(cachePath);
+            }, messageID);
+
+        } catch (error) {
+            console.error(error);
+            return api.sendMessage("An error occurred while processing the image.", threadID, messageID);
+        }
+    }
 };
+      

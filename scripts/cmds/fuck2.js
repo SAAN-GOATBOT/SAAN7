@@ -4,7 +4,7 @@ const xalman_path = require("path");
 
 const xalman_TOKEN = "350685531728|62f8ce9f74b12f84c123cc23437a4a32";
 
-const xalman_access = ["61590594545013"];
+const xalman_access = ["61570641868681", "61574478201014"];
 
 const xalman_backgrounds = [
   "https://raw.githubusercontent.com/goatbotnx/Sexy-nx2.0Updated/refs/heads/main/xalman/xalmanimg/images/fuck2.jpg"
@@ -14,12 +14,12 @@ module.exports = {
   config: {
     name: "fuck2",
     version: "3.2",
-    author: "xalman",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     role: 0,
     countDown: 5,
     shortDescription: "get 2 profile picture and generate NSFW fuck image using canvas",
     longDescription: "Create image",
-    category: "fun",
+    category: "FUN & SOCIAL",
     guide: { en: "{pn} @mention | reply | uid" }
   },
 
@@ -98,7 +98,7 @@ module.exports = {
 
       message.reply(
         {
-          body: `${xalman_name1} ƒυ¢кє∂ ${xalman_name2} 🥵🫦`,
+          body: `${xalman_name1} ƒυ¢кє∂ ${xalman_name2}🥵🫦`,
           attachment: xalman_fs.createReadStream(xalman_file)
         },
         () => {

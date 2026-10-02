@@ -1,124 +1,185 @@
-const axios = require("axios"), fs = require("fs"), path = require("path");
+const axios = require("axios");
 
-const mahmud = async () => {
-        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-        return base.data.mahmud;
-};
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-        config: {
-                name: "segs",
-                version: "1.7",
-                author: "MahMUD",
-                countDown: 10,
-                role: 2,
-                category: "18+",
-                description: {
-                        bn: "বিভিন্ন ক্যাটাগরির ভিডিও সেগস দেখুন",
-                        en: "Watch video segs from various categories",
-                        vi: "Xem segs video từ các danh mục khác nhau"
-                },
-                guide: {
-                        bn: '{pn} [পৃষ্ঠা] | {pn} list',
-                        en: '{pn} [page] | {pn} list',
-                        vi: '{pn} [trang] | {pn} list'
-                }
-        },
+  config: {
+    name: "segs",
+    aliases: ["xnxx"],
+    version: "5.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
+    role: 2,
+    shortDescription: "Search and download videos",
+    category: "nsfw",
+    guide: "{pn} [query]"
+  },
 
-        langs: {
-                bn: {
-                        noInput: "× বেবি, একটি ক্যাটাগরি দাও অথবা ভিডিওতে রিপ্লাই দাও",
-                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact MahMUD।\n•WhatsApp: 01836298139",
-                        invalidPage: "× ভুল পৃষ্ঠা! সর্বোচ্চ পৃষ্ঠা: %1",
-                        invalidSelect: "❌ ভুল সিলেকশন।",
-                        header: "𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐒𝐞𝐠𝐬 𝐕𝐢𝐝𝐞𝐨",
-                        footer: "\n♻ | পৃষ্ঠা [%1/%2]<😘\nℹ | টাইপ করুন !%3 %4 - পরবর্তী পৃষ্ঠা দেখতে।"
-                },
-                en: {
-                        noInput: "× Baby, please specify a category or reply to a video",
-                        error: "× API error: %1. Contact MahMUD for help.\n•WhatsApp: 01836298139",
-                        invalidPage: "× Invalid page! Max page: %1",
-                        invalidSelect: "❌ Invalid selection.",
-                        header: "𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐒𝐞𝐠𝐬 𝐕𝐢𝐝𝐞𝐨",
-                        footer: "\n♻ | 𝐏𝐚𝐠𝐞 [%1/%2]<😘\nℹ | 𝐓𝐲𝐩𝐞 !%3 %4 - 𝐭𝐨 𝐬𝐞𝐞 𝐧𝐞𝐱𝐭 𝐩𝐚𝐠𝐞."
-                },
-                vi: {
-                        noInput: "× Cưng ơi, vui lòng chỉ định danh mục hoặc phản hồi video",
-                        error: "× Lỗi: %1. Liên hệ MahMUD để hỗ trợ.",
-                        invalidPage: "× Trang không hợp lệ! Trang tối đa: %1",
-                        invalidSelect: "❌ Lựa chọn không hợp lệ.",
-                        header: "𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐒𝐞𝐠𝐬 𝐕𝐢𝐝𝐞𝐨",
-                        footer: "\n♻ | Trang [%1/%2]<😘\nℹ | Nhập !%3 %4 - để xem trang tiếp theo."
-                }
-        },
+  onStart: async function ({ api, event, args, message }) {
+    const { threadID, messageID, senderID } = event;
+    const query = args.join(" ");
 
-        onStart: async function ({ api, event, args, message, getLang }) {
-                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
-                if (this.config.author !== authorName) return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+    if (!query) return message.reply("❌ | Please provide a search query!");
 
-                try {
-                        const apiBase = await mahmud();
+    try {
+      api.setMessageReaction("⏳", messageID, () => {}, true);
 
-                        if (args[0] === "list") {
-                                api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                                const res = await axios.get(`${apiBase}/api/segs/mahmud/list`);
-                                api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                                return message.reply(res.data.message);
-                        }
+      const res = await axios.get(`${await getApiBaseUrl()}/api/xnxxsearch?q=${encodeURIComponent(query)}`);
+      const results = res.data.results.slice(0, 5);
 
-                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                        const configRes = await axios.get(`${apiBase}/api/segs/mahmud/display`);
-                        const { displayNames, realCategories, captions } = configRes.data;
-                        const page = parseInt(args[0]) || 1, itemsPerPage = 10, totalPages = Math.ceil(displayNames.length / itemsPerPage);
+      if (!results || results.length === 0) {
+        api.setMessageReaction("❌", messageID, () => {}, true);
+        return message.reply("❌ | No results found!");
+      }
 
-                        if (page < 1 || page > totalPages) {
-                                api.setMessageReaction("❌", event.messageID, () => {}, true);
-                                return message.reply(getLang("invalidPage", totalPages));
-                        }
+      const cacheDir = path.join(__dirname, "cache");
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-                        const startIndex = (page - 1) * itemsPerPage;
-                        const menu = `${getLang("header")}\n𐙚━━━━━━━━━━━━━━━━━━━━━ᡣ𐭩\n${displayNames.slice(startIndex, startIndex + itemsPerPage).map((name, i) => `${startIndex + i + 1}. ${name}`).join("\n")}\n𐙚━━━━━━━━━━━━━━━━━━━━━ᡣ𐭩${getLang("footer", page, totalPages, this.config.name, page + 1)}`;
+      const attachments = [];
+      let msg = `🔎 Search Results for: ${query}\n━━━━━━━━━━━━━━━━━━━━\n`;
 
-                        api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                        return message.reply(menu, (err, info) => {
-                                global.GoatBot.onReply.set(info.messageID, { commandName: this.config.name, messageID: info.messageID, author: event.senderID, realCategories, captions });
-                        });
-                } catch (err) {
-                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                        const errorMsg = err.response?.data?.error || err.message || "Unknown error";
-                        return message.reply(getLang("error", errorMsg));
-                }
-        },
+      for (let i = 0; i < results.length; i++) {
+        const video = results[i];
+        msg += `${i + 1}. ${video.title}\n\n`;
 
-        onReply: async function ({ api, event, Reply, getLang, message }) {
-                if (event.senderID !== Reply.author) return;
-                api.unsendMessage(Reply.messageID);
-                const category = Reply.realCategories[parseInt(event.body) - 1];
-                if (!category) return message.reply(getLang("invalidSelect"));
-
-                try {
-                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
-                        const apiBase = await mahmud();
-                        const response = await axios.get(`${apiBase}/api/segs/mahmud/videos/${category}?userID=${event.senderID}`);
-                        
-                        if (!response.data.success) return message.reply(response.data.message);
-
-                        const randomVideoUrl = response.data.videos[Math.floor(Math.random() * response.data.videos.length)];
-                        const filePath = path.join(__dirname, `cache/segs_${Date.now()}.mp4`);
-
-                        const res = await axios({ url: randomVideoUrl, method: "GET", responseType: "stream", headers: { 'User-Agent': 'Mozilla/5.0' } });
-                        const writer = fs.createWriteStream(filePath);
-                        res.data.pipe(writer);
-
-                        writer.on("finish", () => {
-                                api.setMessageReaction("🪽", event.messageID, () => {}, true);
-                                message.reply({ body: Reply.captions[category] || Reply.captions["default"], attachment: fs.createReadStream(filePath) }, () => { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); });
-                        });
-                        writer.on("error", (err) => message.reply(getLang("error", err.message)));
-                } catch (err) {
-                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                        const errorMsg = err.response?.data?.error || err.message || "Unknown error";
-                        return message.reply(getLang("error", errorMsg));
-                }
+        const imgPath = path.join(cacheDir, `thumb_${senderID}_${i}.jpg`);
+        try {
+          const imgRes = await axios.get(video.thumbnail, { responseType: "arraybuffer" });
+          fs.writeFileSync(imgPath, Buffer.from(imgRes.data, "binary"));
+          attachments.push(fs.createReadStream(imgPath));
+        } catch (e) {
+          console.error("Thumbnail download failed");
         }
+      }
+
+      msg += `━━━━━━━━━━━━━━━━━━━━\nReply with 1-5 to select and download.`;
+
+      api.setMessageReaction("✅", messageID, () => {}, true);
+
+      return api.sendMessage({ body: msg, attachment: attachments }, threadID, (err, info) => {
+        attachments.forEach(file => { if (fs.existsSync(file.path)) fs.unlinkSync(file.path); });
+        
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName: this.config.name,
+          author: senderID,
+          results: results,
+          listMessageID: info.messageID
+        });
+      }, messageID);
+
+    } catch (err) {
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return message.reply("❌ | API Error!");
+    }
+  },
+
+  onReply: async function ({ api, event, Reply, message }) {
+    const { author, results, listMessageID } = Reply;
+    if (event.senderID !== author) return;
+
+    const index = parseInt(event.body) - 1;
+    if (isNaN(index) || index < 0 || index >= results.length) return;
+
+    const selected = results[index];
+    const videoUrl = selected.download_url;
+
+    if (!videoUrl || videoUrl.includes("Feature coming soon")) {
+      return message.reply("❌ | Download link not available for this video.");
+    }
+
+    try {
+      api.unsendMessage(listMessageID);
+      
+                  api.setMessageReaction("📥", event.messageID, () => {}, true);
+
+      const cacheDir = path.join(__dirname, "cache");
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+
+      const tempFilePath = path.join(cacheDir, `${Date.now()}_video.mp4`);
+      const headRes = await axios.head(videoUrl).catch(() => null);
+      if (headRes && headRes.headers['content-length']) {
+        const fileSizeMB = parseInt(headRes.headers['content-length']) / (1024 * 1024);
+        if (fileSizeMB > 80) { 
+          api.setMessageReaction("❌", event.messageID, () => {}, true);
+          return message.reply("❌ | Video file size is too large to send (>80MB).");
+        }
+      }
+
+      const response = await axios({
+        method: "GET",
+        url: videoUrl,
+        responseType: "stream",
+        timeout: 200000, 
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36',
+          'Accept': '*/*'
+        }
+      });
+
+      const writer = fs.createWriteStream(tempFilePath);
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", (err) => {
+          writer.close();
+          reject(err);
+        });
+        response.data.on("error", (err) => {
+          writer.close();
+          reject(err);
+        });
+      });
+
+      return api.sendMessage({
+        body: `✅ | Title: ${selected.title}`,
+        attachment: fs.createReadStream(tempFilePath)
+      }, event.threadID, (err) => {
+
+        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
+
+        if (err) {
+          api.setMessageReaction("❌", event.messageID, () => {}, true);
+          return message.reply("❌ | Failed to send video attachment.");
+        }
+        
+        api.setMessageReaction("✅", event.messageID, () => {}, true);
+      }, event.messageID);
+
+    } catch (err) {
+      console.error("Stream Download Error:", err);
+      api.setMessageReaction("❌", event.messageID, () => {}, true);
+      return message.reply("❌ | Failed to download or process video stream.");
+    }
+  }
 };
+        

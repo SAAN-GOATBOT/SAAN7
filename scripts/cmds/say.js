@@ -5,78 +5,77 @@ const path = require("path");
 module.exports = {
 	config: {
 		name: "say",
-		version: "1.2",
-		author: "Toshiro Editz",
+		version: "4.0",
+		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
 		countDown: 5,
 		role: 0,
-		shortDescription: {
-			en: "Text to Speech"
-		},
-		longDescription: {
-			en: "Generate speech from text"
-		},
-		category: "media",
-		guide: {
-			en: "{pn} <text>\n{pn} <text> - <lang>\n\nExamples:\n{pn} Hello\n{pn} Hi - bn\n{pn} Hello Isagi - ja\n{pn} नमस्ते - hi"
-		}
+		shortDescription: "Reply supported TTS",
+		category: "TTS"
 	},
 
-	onStart: async function ({ event, args, message }) {
-		if (!args.length)
-			return message.reply(
-				"Usage:\n.say <text>\n.say <text> - <lang>\n\nExamples:\n.say Hello\n.say Hi - bn\n.say Hello Isagi - ja"
-			);
+	onStart: async function ({ message, args, event }) {
 
-		let input = args.join(" ").trim();
+		let text;
 
-		let lang = "en";
-		let text = input;
-
-		const match = input.match(/^(.*?)\s*-\s*([a-z]{2})$/i);
-
-		if (match) {
-			text = match[1].trim();
-			lang = match[2].toLowerCase();
+		if (event.type === "message_reply" && event.messageReply.body) {
+			text = event.messageReply.body;
+		}
+		else if (args[0]) {
+			text = args.join(" ");
+		}
+		else {
+			return message.reply("⚠️ Please enter text or reply to a message.");
 		}
 
-		if (!text)
-			return message.reply("Please provide some text.");
-
+		const maxLength = 180;
+		const parts = [];
 		const cacheDir = path.join(__dirname, "cache");
-		await fs.ensureDir(cacheDir);
 
-		const filePath = path.join(
-			cacheDir,
-			`say_${event.senderID}_${Date.now()}.mp3`
-		);
+		for (let i = 0; i < text.length; i += maxLength) {
+			parts.push(text.substring(i, i + maxLength));
+		}
+
+		const attachments = [];
+		const filePaths = [];
 
 		try {
-			const res = await axios({
-				method: "GET",
-				url: `https://toshiro-api-editz6t9.vercel.app/api/tools/sayv2?text=${encodeURIComponent(text)}&lang=${encodeURIComponent(lang)}`,
-				responseType: "arraybuffer",
-				validateStatus: () => true
-			});
+			await fs.ensureDir(cacheDir);
 
-			const contentType = res.headers["content-type"] || "";
+			for (let i = 0; i < parts.length; i++) {
+				const encoded = encodeURIComponent(parts[i]);
+				const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=bn&client=tw-ob`;
 
-			if (contentType.includes("application/json")) {
-				const data = JSON.parse(Buffer.from(res.data).toString("utf8"));
-				return message.reply(data.message || "Request failed.");
+				const filePath = path.join(cacheDir, `say_${i}_${Date.now()}.mp3`);
+				filePaths.push(filePath);
+
+				const response = await axios({
+					url,
+					method: "GET",
+					responseType: "stream"
+				});
+
+				const writer = fs.createWriteStream(filePath);
+				response.data.pipe(writer);
+
+				await new Promise((resolve) => writer.on("finish", resolve));
+
+				attachments.push(fs.createReadStream(filePath));
 			}
 
-			await fs.writeFile(filePath, Buffer.from(res.data));
-
 			await message.reply({
-				body: `🗣️ Language: ${lang}`,
-				attachment: fs.createReadStream(filePath)
+				body: `🔊 Voice generated (${parts.length} parts)`,
+				attachment: attachments
 			});
 
-			fs.unlink(filePath, () => {});
-		}
-		catch (err) {
-			console.error(err);
-			message.reply("Failed to generate speech.");
+			setTimeout(() => {
+				filePaths.forEach(file => {
+					if (fs.existsSync(file)) fs.unlinkSync(file);
+				});
+			}, 5000);
+
+		} catch (err) {
+			console.log(err);
+			return message.reply("❌ Failed to generate voice.");
 		}
 	}
 };

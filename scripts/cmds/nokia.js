@@ -1,48 +1,69 @@
-const axios = require("axios");
+const { createCanvas, loadImage } = require('canvas');
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "nokia",
-    aliases: [],
-    version: "0.0.7",
-    author: "Siam Ahmed Saan",
-    countDown: 3,
+    version: "3.2",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
     role: 0,
-    shortDescription: "𝐏𝐫𝐨𝐟𝐢𝐥𝐞 𝐩𝐢𝐜𝐭𝐮𝐫𝐞 𝐢𝐧𝐬𝐢𝐝𝐞 𝐚 𝐍𝐨𝐤𝐢𝐚 𝐩𝐡𝐨𝐧𝐞",
-    longDescription: "𝐒𝐡𝐨𝐰𝐬 𝐚 𝐮𝐬𝐞𝐫'𝐬 𝐩𝐫𝐨𝐟𝐢𝐥𝐞 𝐩𝐢𝐜𝐭𝐮𝐫𝐞 𝐢𝐧𝐬𝐢𝐝𝐞 𝐚 𝐍𝐨𝐤𝐢𝐚 𝐩𝐡𝐨𝐧𝐞 𝐟𝐫𝐚𝐦𝐞",
-    category: "fun",
-    guide: {
-      en: "{pn} (𝐫𝐞𝐩𝐥𝐲 𝐨𝐫 𝐧𝐨 𝐫𝐞𝐩𝐥𝐲)"
-    }
+    category: "FUN & SOCIAL",
+    guide: { en: "{pn} @mention / reply / UID" }
   },
 
-  onStart: async function ({ event, message, args, usersData }) {
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID, senderID, type, messageReply, mentions } = event;
+    const cacheDir = path.join(__dirname, 'cache');
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+
+    api.setMessageReaction("⏳", messageID, () => {}, true);
+
+    const bgUrl = "https://iili.io/qJehE8u.png"; 
+    let targetID;
+
+    if (type === "message_reply") {
+      targetID = messageReply.senderID;
+    } else if (Object.keys(mentions).length > 0) {
+      targetID = Object.keys(mentions)[0];
+    } else if (args.length > 0) {
+      targetID = args[0];
+    } else {
+      targetID = senderID;
+    }
+
     try {
-      let targetID =
-        (event.type === "message_reply" && event.messageReply?.senderID) || 
-        (event.mentions && Object.keys(event.mentions)[0]) || 
-        event.senderID;
+      const [background, avatar] = await Promise.all([
+        loadImage(bgUrl),
+        loadImage(`https://graph.facebook.com/${targetID}/picture?width=1000&height=1000&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)
+      ]);
 
-      const name = await usersData.getName(targetID).catch(() => "𝐔𝐧𝐤𝐧𝐨𝐰𝐧 𝐔𝐬𝐞𝐫");
+      const canvas = createCanvas(background.width, background.height);
+      const ctx = canvas.getContext('2d');
       
-      const avatarURL = await usersData.getAvatarUrl(targetID);
-      
-      const apiURL = `https://azadx69x-all-apis-top.vercel.app/api/nokia?image=${encodeURIComponent(avatarURL)}`;
-      
-      const stream = await global.utils.getStreamFromURL(apiURL);
-      
-      const replyText = `𝐇𝐞𝐫𝐞 𝐍𝐨𝐤𝐢𝐚 𝐩𝐡𝐨𝐧𝐞 𝐨𝐟 ${name}'𝐬📱`;
+      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-      return message.reply({
-        body: replyText,
-        attachment: stream
-      });
+      const moveRight = 80;   
+      const moveDown = 280;    
+      const widthSize = 320;   
+      const heightSize = 245;  
 
-    } catch (err) {
-      console.error("𝐍𝐎𝐊𝐈𝐀 𝐂𝐌𝐃 𝐄𝐑𝐑𝐎𝐑:", err);
+      ctx.drawImage(avatar, moveRight, moveDown, widthSize, heightSize);
 
-      const errorText = `❌ 𝐂𝐨𝐮𝐥𝐝 𝐧𝐨𝐭 𝐟𝐞𝐭𝐜𝐡 𝐭𝐡𝐞 𝐍𝐨𝐤𝐢𝐚 𝐩𝐡𝐨𝐧𝐞 𝐢𝐦𝐚𝐠𝐞.`;
-      return message.reply(errorText);
+      const cachePath = path.join(cacheDir, `nokia_${targetID}.png`);
+      fs.writeFileSync(cachePath, canvas.toBuffer());
+
+      return api.sendMessage({
+        attachment: fs.createReadStream(cachePath)
+      }, threadID, () => {
+        api.setMessageReaction("✅", messageID, () => {}, true);
+        fs.unlinkSync(cachePath);
+      }, messageID);
+
+    } catch (e) {
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return api.sendMessage("", threadID, messageID);
     }
   }
 };

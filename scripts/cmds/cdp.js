@@ -1,113 +1,113 @@
 const axios = require("axios");
 
-const API_URL = "https://xalman-apis.vercel.app/api/cdp2";
-const MAX_RETRIES = 3;
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
 
 module.exports = {
   config: {
     name: "coupledp",
-    aliases: ["cdp", "k-pop"],
-    version: "2.1",
-    author: "Siam Ahmed Saan",
-    description: "Random K-Pop Matching Couple DP",
-    category: "FUN",
+    aliases: ["cdp"],
+    version: "5.5",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    description: "Random Matching Couple DP with auto-retry and list system",
+    category: "LOVE",
     cooldown: 5,
     guide: {
-      en: "{pn} - Random K-Pop Couple DP\n{pn} list - Show total available Couple DPs"
+      en: "   {pn} - Get a random matching couple DP\n   {pn} list - Show total number of available couple DPs"
     }
   },
 
   onStart: async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
+    const { threadID, messageID, senderID } = event;
+    const API_URL = `${await getApiBaseUrl()}/api/cdp`;
 
-    if (args[0]?.toLowerCase() === "list") {
+    if (args[0] && args[0].toLowerCase() === "list") {
       try {
-        const { data } = await axios.get(`${API_URL}?type=list`, {
-          timeout: 8000
-        });
-
-        if (!data?.status) throw new Error();
-
-        return api.sendMessage(
-`╭━━━〔 💕 〕━━━╮
-      𝗞-𝗣𝗢𝗣 𝗖𝗢𝗨𝗣𝗟𝗘
-━━━━━━━━━━━━━━━
-📦 Total Collection
-✨ ${data.total_cdp}
-╰━━━〔 💖 〕━━━╯`,
-          threadID,
-          messageID
-        );
-      } catch {
-        return api.sendMessage(
-          "❌ | Failed to fetch Couple DP list.",
-          threadID,
-          messageID
-        );
+        const res = await axios.get(`${API_URL}?type=list`, { timeout: 8000 });
+        if (res.data && res.data.status && res.data.total_cdp !== undefined) {
+          const msg = `❖ 𝐓𝐨𝐭𝐚𝐥 𝐂𝐎𝐔𝐏𝐋𝐄 𝐃𝐏 ❖\n━━━━━━━━━━━━━━━━━━\n> ${res.data.total_cdp}`;
+          return api.sendMessage(msg, threadID, messageID);
+        } else {
+          throw new Error("Invalid response from API");
+        }
+      } catch (err) {
+        console.error("Error fetching CDP list:", err.message);
+        return api.sendMessage("❌ Failed to fetch CDP list. Please try again.", threadID, messageID);
       }
     }
 
-    api.setMessageReaction("🎀", messageID, () => {}, true);
+    const MAX_RETRIES = 3;
+    let attempt = 0;
+    let success = false;
 
-    const headers = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-      Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-      Referer: "https://imgur.com/"
-    };
+    api.setMessageReaction("⏳", messageID, () => {}, true);
 
-    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    while (attempt < MAX_RETRIES && !success) {
+      attempt++;
       try {
-        const { data } = await axios.get(API_URL, {
-          timeout: 10000
-        });
+        const res = await axios.get(API_URL, { timeout: 10000 });
+        const pair = res.data.pair;
 
-        if (!data?.pair?.boy || !data?.pair?.girl) throw new Error();
+        if (!pair || !pair.boy || !pair.girl) throw new Error("Invalid data from API");
 
-        const [boy, girl] = await Promise.all([
-          axios.get(data.pair.boy, {
+        const getStream = async (url) => {
+          const response = await axios.get(url, {
             responseType: "stream",
             timeout: 15000,
-            headers
-          }),
-          axios.get(data.pair.girl, {
-            responseType: "stream",
-            timeout: 15000,
-            headers
-          })
-        ]);
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
+              "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+              "Referer": "https://imgur.com/"
+            }
+          });
+          return response.data;
+        };
 
-        await api.sendMessage(
-          {
-            body:
-`╭━━━〔 💕 〕━━━╮
-      𝗞-𝗣𝗢𝗣 𝗖𝗢𝗨𝗣𝗟𝗘
-━━━━━━━━━━━━━━━
-💞 Matching Couple DP
-✨ Random Collection
-╰━━━〔 💖 〕━━━╯`,
-            attachment: [boy.data, girl.data]
-          },
-          threadID
-        );
+        const boyStream = await getStream(pair.boy);
+        const girlStream = await getStream(pair.girl);
+
+        await api.sendMessage({
+          body: "❖ 𝐌𝐀𝐓𝐂𝐇𝐈𝐍𝐆 𝐂𝐎𝐔𝐏𝐋𝐄 𝐃𝐏 ❖\n━━━━━━━━━━━━━━━━━━\n",
+          attachment: [boyStream, girlStream]
+        }, threadID);
 
         api.setMessageReaction("✅", messageID, () => {}, true);
-        return;
+        success = true;
+        break;
 
-      } catch {
+      } catch (err) {
+        console.error(`Attempt ${attempt} failed:`, err.message);
         if (attempt === MAX_RETRIES) {
           api.setMessageReaction("❌", messageID, () => {}, true);
-
-          return api.sendMessage(
-            "❌ | Failed to fetch matching Couple DP.\nPlease try again later.",
-            threadID,
-            messageID
-          );
+          return api.sendMessage(`✕ Failed after ${MAX_RETRIES} attempts. Please try again later.`, threadID, messageID);
         }
-
-        await new Promise(resolve =>
-          setTimeout(resolve, attempt * 2000)
-        );
+        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
       }
     }
   }

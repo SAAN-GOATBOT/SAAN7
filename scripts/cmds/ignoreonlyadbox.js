@@ -23,24 +23,24 @@ module.exports = {
 
 	langs: {
 		vi: {
-			missingCommandNameToAdd: "⚠ Vui lòng nhập tên lệnh bạn muốn thêm vào danh sách bỏ qua",
-			missingCommandNameToDelete: "⚠ Vui lòng nhập tên lệnh bạn muốn xóa khỏi danh sách bỏ qua",
-			commandNotFound: "✗ Không tìm thấy lệnh \"%1\" trong danh sách lệnh của bot",
-			commandAlreadyInList: "✗ Lệnh \"%1\" đã có trong danh sách bỏ qua",
-			commandAdded: "✓ Đã thêm lệnh \"%1\" vào danh sách bỏ qua",
-			commandNotInList: "✗ Lệnh \"%1\" không có trong danh sách bỏ qua",
-			commandDeleted: "✓ Đã xóa lệnh \"%1\" khỏi danh sách bỏ qua",
-			ignoreList: "≡ Danh sách lệnh bỏ qua trong nhóm bạn:\n%1"
+			missingCommandNameToAdd: "⚠️ Vui lòng nhập tên lệnh bạn muốn thêm vào danh sách bỏ qua",
+			missingCommandNameToDelete: "⚠️ Vui lòng nhập tên lệnh bạn muốn xóa khỏi danh sách bỏ qua",
+			commandNotFound: "❌ Không tìm thấy lệnh \"%1\" trong danh sách lệnh của bot",
+			commandAlreadyInList: "❌ Lệnh \"%1\" đã có trong danh sách bỏ qua",
+			commandAdded: "✅ Đã thêm lệnh \"%1\" vào danh sách bỏ qua",
+			commandNotInList: "❌ Lệnh \"%1\" không có trong danh sách bỏ qua",
+			commandDeleted: "✅ Đã xóa lệnh \"%1\" khỏi danh sách bỏ qua",
+			ignoreList: "📑 Danh sách lệnh bỏ qua trong nhóm bạn:\n%1"
 		},
 		en: {
-			missingCommandNameToAdd: "⚠ Please enter the command name you want to add to the ignore list",
-			missingCommandNameToDelete: "⚠ Please enter the command name you want to delete from the ignore list",
-			commandNotFound: "✗ Command \"%1\" not found in bot's command list",
-			commandAlreadyInList: "✗ Command \"%1\" already in ignore list",
-			commandAdded: "✓ Added command \"%1\" to ignore list",
-			commandNotInList: "✗ Command \"%1\" not in ignore list",
-			commandDeleted: "✓ Removed command \"%1\" from ignore list",
-			ignoreList: "≡ Ignore list in your group:\n%1"
+			missingCommandNameToAdd: "⚠️ Please enter the command name you want to add to the ignore list",
+			missingCommandNameToDelete: "⚠️ Please enter the command name you want to delete from the ignore list",
+			commandNotFound: "❌ Command \"%1\" not found in bot's command list",
+			commandAlreadyInList: "❌ Command \"%1\" already in ignore list",
+			commandAdded: "✅ Added command \"%1\" to ignore list",
+			commandNotInList: "❌ Command \"%1\" not in ignore list",
+			commandDeleted: "✅ Removed command \"%1\" from ignore list",
+			ignoreList: "📑 Ignore list in your group:\n%1"
 		}
 	},
 

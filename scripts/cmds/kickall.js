@@ -1,48 +1,60 @@
 module.exports = {
-  config: {
-    name: "kickall",
-    version: "1.0",
-    author: "Siam Ahmed Saan",
-    role: 2,
-    shortDescription: {
-      en: "Kick everyone from the group"
-    },
-    category: "owner",
-    guide: {
-      en: "{prefix}kickall"
-    }
-  },
+	config: {
+		name: 'kickall',
+		version: '2.1.0',
+		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍", //do not change credits
+		countDown: 5,
+		role: 2,
+		shortDescription: 'Remove all group members',
+		longDescription: {
+			en: 'kickall members of the group'
+		},
+		category: 'Box Chat',
+		guide: {
+			en: '{p}kickall on/off'
+		}
+	},
 
-  onStart: async function ({ api, event }) {
-    const threadID = event.threadID;
-    const senderID = event.senderID;
+	kickOffMembers: {}, // Store members when off
 
-    try {
-      const threadInfo = await api.getThreadInfo(threadID);
+	onStart: async function ({ api, event, getText, args }) {
+		const { participantIDs } = await api.getThreadInfo(event.threadID);
 
-      if (!threadInfo.adminIDs.some(item => item.id === api.getCurrentUserID())) {
-        return api.sendMessage("❌ Bot must be an admin to kick members.", threadID);
-      }
+		function delay(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
 
-      const membersToKick = threadInfo.participantIDs.filter(id => id !== senderID && id !== api.getCurrentUserID());
+		const botID = api.getCurrentUserID();
+		const listUserID = participantIDs.filter(ID => ID != botID);
 
-      if (membersToKick.length === 0) {
-        return api.sendMessage("❌ No members to kick.", threadID);
-      }
+		if (args[0] === 'off') {
+			this.kickOffMembers[event.threadID] = listUserID;
+			return api.sendMessage('» Kickall feature turned off. Members stored.', event.threadID);
+		}
 
-      api.sendMessage(`⚠️ Kicking ${membersToKick.length} members...`, threadID, async () => {
-        for (const userID of membersToKick) {
-          try {
-            await api.removeUserFromGroup(userID, threadID);
-          } catch (e) {
-            console.log(`❌ Failed to kick ${userID}: ${e.message}`);
-          }
-        }
-      });
-    } catch (e) {
-      console.error(e);
-      api.sendMessage("❌ An error occurred while trying to kick members.", threadID);
-    }
+		if (args[0] === 'on') {
+			const kickOffMembers = this.kickOffMembers[event.threadID] || [];
+			Object.keys(kickOffMembers).forEach(async (memberID) => {
+				await api.addUserToGroup(memberID, event.threadID);
+			});
+			this.kickOffMembers[event.threadID] = [];
+			return api.sendMessage('» Kickall feature turned on. Members added back to the group.', event.threadID);
+		}
 
-  }
+		return api.getThreadInfo(event.threadID, async (err, info) => {
+			if (err) return api.sendMessage("» An error occurred.", event.threadID);
+			if (!info.adminIDs.some(item => item.id == api.getCurrentUserID()))
+				return api.sendMessage(`» Need group admin rights.\nPlease add and try again.`, event.threadID, event.messageID);
+			if (info.adminIDs.some(item => item.id == event.senderID)) {
+				setTimeout(function () { api.removeUserFromGroup(botID, event.threadID) }, 300000);
+				api.sendMessage(`» Start deleting all members. Bye everyone.`, event.threadID);
+				for (let id in listUserID) {
+					await delay(1000);
+					api.removeUserFromGroup(listUserID[id], event.threadID);
+				}
+			} else {
+				return api.sendMessage('» Only group admins can use this command.', event.threadID, event.messageID);
+			}
+		});
+	}
 };

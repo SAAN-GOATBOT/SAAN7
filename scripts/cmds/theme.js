@@ -3,204 +3,235 @@ const { getStreamFromURL } = global.utils;
 module.exports = {
   config: {
     name: "theme",
-    aliases: ["aitheme", "changetheme"],
-    version: "2.1",
-    author: "Neoaz ゐ",
+    aliases: ["aitheme"],
+    version: "5.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 1,
-    description: "Create and apply AI themes for chat group with image previews",
+    description: "Create and apply AI themes for group chats",
     category: "box chat",
-    guide: "{pn}: View current theme\n{pn} list: List available themes\n{pn} <description>: Create AI theme\n{pn} apply <ID>: Apply theme by ID"
+    guide: "{pn} - Show current theme\n{pn} id - Show theme ID\n{pn} apply <themeID> - Apply theme\n{pn} <description> - Generate AI themes"
   },
 
-  langs: {
-    en: {
-      missingPrompt: "Enter a description or theme ID\nExamples:\n• ocean sunset\n• apply 739785333579430",
-      generating: "Generating...",
-      preview: "Generated %1 theme(s)! %2\n\n%3\nReply with number 1-%1",
-      themeInfo: "%1. ID: %2\nColor: %3",
-      applying: "Applying...",
-      applied: "Applied!",
-      error: "Error: %1",
-      applyError: "Apply error: %1",
-      noThemes: "No themes found",
-      invalidSelection: "Choose 1-%1",
-      notAuthor: "Only requester can select",
-      missingThemeId: "Enter theme ID\nExample: apply 739785333579430",
-      applyingById: "Applying %1...",
-      appliedById: "Applied %1!",
-      currentTheme: "Current: ID %1, Color %2\nUse apply <ID> to change",
-      fetchingCurrent: "Fetching...",
-      noCurrentTheme: "Using default theme",
-      showingPreviews: "Previews:",
-      previousTheme: "Previous: ID %1, Color %2",
-      listingThemes: "Available themes:\n\n%1",
-      themeListItem: "%1. ID: %2\nName: %3\nColor: %4\n"
+  onReply: async function ({ message, Reply, event, api }) {
+    const { author, themes, threadID, messageID } = Reply;
+    const currentUserId = event.senderID || event.userID || (event.from && event.from.id);
+
+    if (currentUserId !== author) {
+      return message.reply('❌ Only the person who generated these themes can select one.');
+    }
+
+    const selection = parseInt((event.body || event.text || '').trim());
+
+    if (!selection || selection < 1 || selection > themes.length) {
+      return message.reply(`❌ Invalid selection. Please reply with a number between 1 and ${themes.length}.`);
+    }
+
+    const selectedTheme = themes[selection - 1];
+
+    try {
+      if (messageID && typeof api.unsendMessage === "function") {
+        try { await api.unsendMessage(messageID); } catch (e) {}
+      }
+
+      const themeId = selectedTheme.id || selectedTheme.themeId || selectedTheme.theme_fbid;
+      if (!themeId) {
+        return message.reply('❌ Selected theme does not have a valid theme ID.');
+      }
+
+      await new Promise((resolve, reject) => {
+        api.changeThreadColor(themeId, threadID, (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        });
+      });
+
+      const themeName = selectedTheme.accessibility_label || selectedTheme.name || "AI Theme";
+      let successMsg = `✅ Theme applied successfully!\n📝 Name: ${themeName}\n🆔 ID: ${themeId}`;
+
+      const attachments = [];
+      const imageUrl = selectedTheme.background_asset?.image?.url || selectedTheme.backgroundImage || selectedTheme.image || selectedTheme.images?.background;
+
+      if (imageUrl) {
+        try {
+          const stream = await getStreamFromURL(imageUrl);
+          if (stream) attachments.push(stream);
+        } catch (imgErr) {
+          console.log('Failed to load theme image:', imgErr);
+        }
+      }
+
+      return message.reply({
+        body: successMsg,
+        attachment: attachments.length > 0 ? attachments : undefined
+      });
+
+    } catch (error) {
+      console.error('Theme apply error:', error);
+      return message.reply(`❌ Failed to apply theme: ${error.message || error}`);
     }
   },
 
-  onStart: async function ({ args, message, event, api, getLang, commandName }) {
-    const command = args[0];
+  onStart: async function ({ args, message, event, api, commandName }) {
+    const { threadID, senderID } = event;
+    const command = String(args[0] || "").toLowerCase().trim();
 
     if (command === "id") {
       try {
-        const threadInfo = await api.getThreadInfo(event.threadID);
-        const themeId = threadInfo?.threadTheme?.id || threadInfo?.color || "Unknown";
-        return message.reply(`Current Theme ID: ${themeId}`);
+        const threadInfo = await api.getThreadInfo(threadID);
+        const theme = threadInfo?.threadTheme || {};
+        const themeId = theme.id || theme.theme_fbid || theme.themeId || threadInfo?.color || "Unknown";
+        const color = theme.accessibility_label || theme.name || threadInfo?.color || "Unknown";
+
+        return message.reply(
+          `╭──〔 THEME ID 〕──╮\n│\n│ 📌 ID: ${themeId}\n│ 🎨 Color: ${color}\n│\n╰─────────────────`
+        );
       } catch (error) {
-        return message.reply(getLang("error", error.message || error));
+        return message.reply(`❌ Failed to get current theme.\n\n${error.message || error}`);
       }
     }
 
     if (command === "apply" || command === "set") {
-      const themeId = args[1];
-      if (!themeId) return message.reply(getLang("missingThemeId"));
+      const themeId = args.slice(1).join(" ").trim();
+      if (!themeId) {
+        return message.reply("❌ Please provide a theme ID.\n\nExample: /theme apply 739785333579430");
+      }
+
       try {
-        message.reply(getLang("applyingById", themeId));
-        await api.changeThreadColor(themeId, event.threadID);
-        return message.reply(getLang("appliedById", themeId));
+        await new Promise((resolve, reject) => {
+          api.changeThreadColor(themeId, threadID, (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          });
+        });
+        return message.reply(`✅ Theme applied successfully!\n📌 ID: ${themeId}`);
       } catch (error) {
-        return message.reply(getLang("applyError", error.message || error));
+        return message.reply(`❌ Failed to apply theme: ${error.message || error}`);
       }
     }
 
-    if (command === "list") {
-      try {
-        message.reply(getLang("fetchingCurrent"));
-        const themes = await api.getTheme(event.threadID);
-        if (!themes || themes.length === 0) return message.reply("No themes available.");
+    const prompt = args.join(" ").trim();
 
-        let themeList = "";
-        let counter = 1;
-
-        for (const t of themes) {
-          try {
-            const themeInfo = await api.getThemeInfo(t.id);
-            const name = themeInfo?.accessibility_label || themeInfo?.name || "Unknown";
-            const color = themeInfo?.primary_color || "Unknown";
-            themeList += getLang("themeListItem", counter++, t.id, name, color);
-
-            if (themeInfo?.alternative_themes?.length > 0) {
-              for (const alt of themeInfo.alternative_themes) {
-                themeList += getLang("themeListItem", counter++, alt.id, alt.accessibility_label || "Variant", alt.primary_color || "Unknown");
-              }
-            }
-          } catch (err) {
-            themeList += `${counter++}. ID: ${t.id}\nName: Unknown\nColor: Unknown\n`;
-          }
-        }
-        return message.reply(getLang("listingThemes", themeList.trim()));
-      } catch (error) {
-        return message.reply(getLang("error", error.message || error));
-      }
-    }
-
-    const prompt = args.join(" ");
     if (!prompt) {
       try {
-        message.reply(getLang("fetchingCurrent"));
-        const threadInfo = await api.getThreadInfo(event.threadID);
-        const theme = threadInfo.threadTheme;
-        if (!theme) return message.reply(getLang("noCurrentTheme"));
+        const threadInfo = await api.getThreadInfo(threadID);
+        const theme = threadInfo?.threadTheme;
+        if (!theme) {
+          return message.reply(
+            `╭──〔 CURRENT THEME 〕──╮\n│\n│ ℹ️ Default theme\n│\n│ 💡 Use: /theme <description>\n│ to generate AI themes\n╰────────────────────`
+          );
+        }
+        const themeId = theme.id || theme.theme_fbid || theme.themeId || threadInfo?.color || "Unknown";
+        const color = theme.accessibility_label || theme.name || threadInfo?.color || "Unknown";
 
-        const themeId = theme.id || theme.theme_fbid || "Unknown";
-        let colorInfo = threadInfo.color || theme.accessibility_label || "Unknown";
-        const attachments = [];
-
-        const extractUrl = (obj) => obj?.uri || obj?.url || (typeof obj === 'string' ? obj : null);
-
-        try {
-          const currentThemeData = await api.getThemeInfo(themeId);
-          if (currentThemeData) {
-            if (currentThemeData.name) colorInfo = currentThemeData.name;
-            const bgUrl = extractUrl(currentThemeData.backgroundImage);
-            if (bgUrl) {
-              const stream = await getStreamFromURL(bgUrl, "current_theme.png");
-              if (stream) attachments.push(stream);
-            }
-          }
-        } catch (err) {}
-
-        const body = attachments.length > 0 ? `${getLang("currentTheme", themeId, colorInfo)}\n\n${getLang("showingPreviews")}` : getLang("currentTheme", themeId, colorInfo);
-        return message.reply({ body, attachment: attachments.length > 0 ? attachments : undefined });
+        return message.reply(
+          `╭──〔 CURRENT THEME 〕──╮\n│\n│ 📌 ID: ${themeId}\n│ 🎨 Color: ${color}\n│\n│ 💡 Change: /theme apply <ID>\n│ 💡 Generate: /theme <description>\n╰────────────────────`
+        );
       } catch (error) {
-        return message.reply(getLang("error", error.message || error));
+        return message.reply(`❌ Failed to get current theme.\n\n${error.message || error}`);
       }
+    }
+
+    if (typeof api.createThemeAI !== "function" && typeof api.metaTheme !== "function") {
+      return message.reply(
+        "❌ Your current FCA does not support AI theme generation.\n\nPlease update your FCA/package to a version that provides `api.createThemeAI()` or `api.metaTheme()`."
+      );
     }
 
     try {
-      message.reply(getLang("generating"));
-      const themes = await api.createAITheme(prompt, 5);
-      if (!themes || themes.length === 0) return message.reply(getLang("noThemes"));
+      await message.reply(`🎨 Generating AI themes...\n\n📝 ${prompt}`);
+
+      let themes = [];
+      
+      if (typeof api.createThemeAI === "function") {
+        const promises = [];
+        for (let i = 0; i < 5; i++) {
+          promises.push(new Promise((resolve, reject) => {
+            api.createThemeAI(prompt, (err, data) => {
+              if (err) reject(err);
+              else resolve(data);
+            });
+          }));
+        }
+        
+        const results = await Promise.allSettled(promises);
+        themes = results
+          .filter(r => r.status === "fulfilled")
+          .map(r => r.value)
+          .filter(theme => theme && (theme.id || theme.themeId || theme.theme_fbid));
+        
+        if (themes.length === 0) {
+          return message.reply("❌ No themes were generated.\n\nTry a different description.");
+        }
+      } else {
+        const result = await new Promise((resolve, reject) => {
+          api.metaTheme(prompt, { numThemes: 5 }, (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
+        themes = normalizeThemes(result);
+      }
+
+      if (!themes || themes.length === 0) {
+        return message.reply("❌ No themes were generated.\n\nTry a different description.");
+      }
 
       let themeList = "";
       const attachments = [];
-      const extractUrl = (obj) => obj?.uri || obj?.url || (typeof obj === 'string' ? obj : null);
 
       for (let i = 0; i < themes.length; i++) {
         const theme = themes[i];
-        const colorInfo = theme.accessibility_label || theme.gradient_colors?.join(" → ") || theme.primary_color || "AI Generated";
-        themeList += getLang("themeInfo", i + 1, theme.id, colorInfo) + "\n\n";
+        const themeId = theme.id || theme.themeId || theme.theme_fbid || "Unknown";
+        const themeName = theme.accessibility_label || theme.name || theme.label || "AI Generated";
 
-        let imageUrls = [];
-        if (theme.preview_image_urls) {
-          const light = extractUrl(theme.preview_image_urls.light_mode);
-          const dark = extractUrl(theme.preview_image_urls.dark_mode);
-          if (light) imageUrls.push({ url: light, name: `theme_${i + 1}_l.png` });
-          if (dark && dark !== light) imageUrls.push({ url: dark, name: `theme_${i + 1}_d.png` });
-        }
+        themeList += `${i + 1}. 📝 Name: ${themeName}\n`;
+        themeList += `   🆔 ID: ${themeId}\n\n`;
 
-        if (imageUrls.length === 0) {
-          const bg = extractUrl(theme.background_asset?.image);
-          if (bg) imageUrls.push({ url: bg, name: `theme_${i + 1}_bg.png` });
-        }
-
-        for (const img of imageUrls) {
+        const imageUrl = theme.background_asset?.image?.url || theme.backgroundImage || theme.image || theme.images?.background;
+        if (imageUrl) {
           try {
-            const stream = await getStreamFromURL(img.url, img.name);
+            const stream = await getStreamFromURL(imageUrl);
             if (stream) attachments.push(stream);
-          } catch (err) {}
+          } catch (err) {
+            console.error(`Preview ${i + 1} failed:`, err.message);
+          }
         }
       }
 
-      const replyBody = getLang("preview", themes.length, prompt, themeList.trim());
-      message.reply({ body: replyBody, attachment: attachments.length > 0 ? attachments : undefined }, (err, info) => {
-        if (err) {
-          message.reply(replyBody, (rErr, rInfo) => {
-            if (rErr) return;
-            global.GoatBot.onReply.set(rInfo.messageID, { commandName, author: event.senderID, themes });
-          });
-        } else {
-          global.GoatBot.onReply.set(info.messageID, { commandName, author: event.senderID, themes });
-        }
+      const replyMessage = `╭──〔 AI THEME GENERATOR 〕──╮\n│\n│ ✨ Generated ${themes.length} theme(s)!\n│ 📝 ${prompt}\n│\n${themeList}│ 💬 Reply with a number (1-${themes.length})\n│ to apply the theme.\n╰──────────────────────────`;
+
+      const replyData = { body: replyMessage };
+      if (attachments.length > 0) replyData.attachment = attachments;
+
+      return message.reply(replyData, (err, info) => {
+        if (err || !info?.messageID) return;
+        if (!global.GoatBot?.onReply?.set) return;
+
+        global.GoatBot.onReply.set(info.messageID, {
+          commandName,
+          messageID: info.messageID,
+          author: senderID,
+          threadID,
+          themes: themes,
+          createdAt: Date.now()
+        });
       });
+
     } catch (error) {
-      message.reply(getLang("error", error.message || JSON.stringify(error)));
-    }
-  },
-
-  onReply: async function ({ message, Reply, event, api, getLang }) {
-    const { author, themes, messageID } = Reply;
-    if (event.senderID !== author) return message.reply(getLang("notAuthor"));
-
-    const selection = parseInt(event.body.trim());
-    if (isNaN(selection) || selection < 1 || selection > themes.length) {
-      return message.reply(getLang("invalidSelection", themes.length));
-    }
-
-    const selectedTheme = themes[selection - 1];
-    try {
-      const threadInfo = await api.getThreadInfo(event.threadID);
-      const current = threadInfo.threadTheme;
-      const cId = current?.id || current?.theme_fbid || "Default";
-      const cCol = threadInfo.color || current?.accessibility_label || "Default";
-
-      message.reply(getLang("applying"));
-      await api.changeThreadColor(selectedTheme.id, event.threadID);
-      message.reply(`${getLang("applied")}\n\n${getLang("previousTheme", cId, cCol)}`);
-      api.unsendMessage(messageID);
-    } catch (error) {
-      message.reply(getLang("applyError", error.message || error));
+      console.error("[THEME] Generation Error:", error);
+      return message.reply(`❌ Theme generation failed.\n\nReason: ${error.message || error}`);
     }
   }
 };
+
+function normalizeThemes(result) {
+  if (!result) return [];
+  if (Array.isArray(result)) return result;
+  if (result.themes && Array.isArray(result.themes)) return result.themes;
+  if (result.data?.themes && Array.isArray(result.data.themes)) return result.data.themes;
+  if (result.results && Array.isArray(result.results)) return result.results;
+  if (result.data && Array.isArray(result.data)) return result.data;
+  if (result.id || result.themeId || result.theme_fbid) return [result];
+  return [];
+}

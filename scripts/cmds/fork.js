@@ -1,33 +1,37 @@
-const axios = require("axios");
-
 module.exports = {
   config: {
     name: "fork",
-    version: "1.0",
-    author: "Siam Ahmed Saan",
-    countDown: 3,
+    version: "4.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
     role: 0,
+    shortDescription: "Show github repository link ",
     category: "utility",
-    shortDescription: "GitHub Fork Info",
-    longDescription: "Fetch repository fork details",
     guide: {
-      en: "{pn}"
+      en: "{p}fork"
     }
   },
 
-  onStart: async function ({ message }) {
-    try {
-      const repo = "SAAN-GOATBOT/SAAN7";
-      const res = await axios.get(`https://api.github.com/repos/${repo}`);
-      const data = res.data;
+  langs: {
+    en: {
+      current: `📌 𝐆𝐎𝐀𝐓-𝐁𝐎𝐓
+━━━━━━━━━━━━━━━━━━━━━━━━
+👑 𝐜𝐨𝐧𝐭𝐫𝐢𝐛𝐮𝐭𝐨𝐫 : 𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍
+🔗 𝐫𝐞𝐩𝐨𝐬𝐢𝐭𝐨𝐫𝐲      : %1
+💎 𝐬𝐭𝐚𝐭𝐮𝐬   : 𝐚𝐥𝐰𝐚𝐲𝐬 𝐮𝐩𝐝𝐚𝐭𝐢𝐧𝐠
+━━━━━━━━━━━━━━━━━━━━━━━━`
+    }
+  },
 
-      const msg = `╭──〔 𝐆𝐈𝐓𝐇𝐔𝐁 𝐅𝐎𝐑𝐊 〕──╮\n│\n│ 📦 Repo: ${data.name}\n│ 👑 Owner: ${data.owner.login}\n│ 🍴 Forks: ${data.forks_count}\n│ ⭐ Stars: ${data.stargazers_count}\n│ 👀 Watchers: ${data.watchers_count}\n│\n│ 🔗 Link:\n│ ${data.html_url}\n│\n╰─────────────────────`;
+  onStart: async function ({ message, getLang }) {
+    const link = "https://github.com/SAAN-GOATBOT/SAAN7";
+    return message.reply(getLang("current", link));
+  },
 
-      return message.reply(msg);
-
-    } catch (err) {
-      console.error("Fork Error:", err);
-      return message.reply("❌ Failed to fetch repository info.");
+  onChat: async function ({ message, getLang, event }) {
+    if (event.body && event.body.toLowerCase() === "fork") {
+      const link = "https://github.com/SAAN-GOATBOT/SAAN7";
+      return message.reply(getLang("current", link));
     }
   }
 };

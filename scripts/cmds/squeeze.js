@@ -3,7 +3,7 @@ const Canvas = require("canvas");
 const path = require("path");
 
 const ACCESS_TOKEN = "350685531728|62f8ce9f74b12f84c123cc23437a4a32";
-const access = "61574478201014";
+const access = "61583129938292";
 const COST = 1000;
 
 const backgrounds = [
@@ -14,12 +14,12 @@ module.exports = {
   config: {
     name: "squeeze",
     version: "10.0",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     role: 0,
     countDown: 10,
     shortDescription: "Squeeze image effect",
     longDescription: "Create a squeeze image with tagged user. Cost: 1000 balance per use.",
-    category: "fun",
+    category: "FUN & SOCIAL",
     guide: {
       en: "{pn} @mention\n{pn} reply\n{pn} uid"
     }

@@ -2,7 +2,7 @@ module.exports = {
 	config: {
 		name: "offbot",
 		version: "1.0",
-		author: "Samir+modified by Siam Ahmed Saan",
+		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
 		countDown: 45,
 		role: 2,
 		shortDescription: "Turn off bot",
@@ -11,5 +11,5 @@ module.exports = {
 		guide: "{p}{n}"
 	},
 	onStart: async function ({event, api}) {
-		api.sendMessage("📴Successfully Archives ✅",event.threadID, () =>process.exit(0))}
+		api.sendMessage("📴Successfully Archives✅",event.threadID, () =>process.exit(0))}
 };

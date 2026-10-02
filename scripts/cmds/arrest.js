@@ -7,12 +7,12 @@ module.exports = {
 		name: "arrest",
 		aliases: ["ar"],
 		version: "1.0",
-		author: "Siam Ahmed Saan",
+		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
 		countDown: 5,
 		role: 0,
 		shortDescription: "arret the rapist",
 		longDescription: "",
-		category: "image",
+		category: "FUN & SOCIAL",
 		guide:  {
 			vi: "{pn} [@tag]",
 			en: "{pn} [@tag]"
@@ -46,4 +46,4 @@ async function bal(one, two) {
 
     await img.writeAsync(pth)
     return pth
-              }
+}

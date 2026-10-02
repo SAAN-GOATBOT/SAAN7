@@ -1,4 +1,33 @@
 const axios = require('axios');
+
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
 const fs = require('fs-extra');
 const path = require('path');
 const { createCanvas, loadImage } = require('canvas');
@@ -6,14 +35,14 @@ const { createCanvas, loadImage } = require('canvas');
 module.exports = {
     config: {
         name: "art",
-        aliases: ["artv1", "draw"],
+        aliases: ["artx"],
         version: "3.0",
-        author: "Siam Ahmed Saan",
+        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
         countDown: 3,
         role: 0,
         shortDescription: "Generate 4 AI images in one grid",
         longDescription: "Generate 4 images, combine them into a grid, and reply with 1-4 to get the full image.",
-        category: "AI & IMAGE GENERATION",
+        category: "AI",
         guide: "{pn} [your prompt]"
     },
 
@@ -29,7 +58,7 @@ module.exports = {
         const startTime = Date.now();
 
         try {
-            const apiUrl = `https://xalman-apis.vercel.app/api/artx?prompt=${encodeURIComponent(prompt)}`;
+            const apiUrl = `${await getApiBaseUrl()}/api/artx?prompt=${encodeURIComponent(prompt)}`;
             const response = await axios.get(apiUrl);
             const { status, images } = response.data;
 

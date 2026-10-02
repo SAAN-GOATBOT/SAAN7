@@ -1,12 +1,42 @@
 const axios = require("axios");
+
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
 const fs = require("fs-extra");
 const path = require("path");
 
 module.exports = {
   config: {
     name: "shazam",
+    aliases: ["songid"],
     version: "1.0",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
     shortDescription: { en: "Identify song from audio/video" },
@@ -40,7 +70,7 @@ module.exports = {
     api.setMessageReaction("🎵", messageID, () => {}, true);
 
     try {
-      const apiUrl = `https://xalman-apis.vercel.app/api/shazam?url=${encodeURIComponent(mediaUrl)}`;
+      const apiUrl = `${await getApiBaseUrl()}/api/shazam?url=${encodeURIComponent(mediaUrl)}`;
       const response = await axios.get(apiUrl, { timeout: 30000 });
 
       if (!response.data.status || !response.data.result) {

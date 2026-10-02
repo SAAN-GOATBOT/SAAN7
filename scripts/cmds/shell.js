@@ -1,81 +1,41 @@
-const { exec } = require("child_process");
-const util = require("util");
-const execPromise = util.promisify(exec);
+const { exec } = require('child_process');
 
 module.exports = {
-        config: {
-                name: "shell",
-                aliases: ["sh", "cmd", "exec"],
-                version: "1.0",
-                author: "Siam Ahmed Saan",
-                countDown: 5,
-                role: 4,
-                description: {
-                        vi: "Thực thi lệnh shell",
-                        en: "Execute shell commands"
-                },
-                category: "owner",
-                guide: {
-                        vi: '   {pn} <command>: Thực thi lệnh shell'
-                                + '\n   Ví dụ: {pn} ls -la'
-                                + '\n   {pn} node -v',
-                        en: '   {pn} <command>: Execute shell command'
-                                + '\n   Example: {pn} ls -la'
-                                + '\n   {pn} node -v'
-                }
-        },
+  config: {
+    name: "shell",
+    version: "1.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    countDown: 5,
+    role: 2,
+    shortDescription: "Execute shell commands",
+    longDescription: "",
+    category: "owner",
+    guide: {
+      vi: "{p}{n} <command>",
+      en: "{p}{n} <command>"
+    }
+  },
 
-        langs: {
-                vi: {
-                        missingCommand: "⚠ | Vui lòng nhập lệnh shell cần thực thi",
-                        executing: "⚙ | Đang thực thi lệnh...",
-                        output: "✓ | Kết quả:\n\n%1",
-                        error: "✗ | Lỗi:\n\n%1",
-                        timeout: "⚠ | Lệnh thực thi quá lâu (timeout 30s)"
-                },
-                en: {
-                        missingCommand: "⚠ | Please enter shell command to execute",
-                        executing: "⚙ | Executing command...",
-                        output: "✓ | Output:\n\n%1",
-                        error: "✗ | Error:\n\n%1",
-                        timeout: "⚠ | Command execution timeout (30s)"
-                }
-        },
+  onStart: async function ({ args, message }) {
+    const command = args.join(" ");
 
-        onStart: async function ({ message, args, event, getLang, api }) {
-                const command = args.join(" ");
-                if (!command)
-                        return message.reply(getLang("missingCommand"));
+    if (!command) {
+      return message.reply("Please provide a command to execute.");
+    }
 
-                await message.reply(getLang("executing"));
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing command: ${error}`);
+        return message.reply(`An error occurred while executing the command: ${error.message}`);
+      }
 
-                try {
-                        const { stdout, stderr } = await execPromise(command, {
-                                timeout: 30000,
-                                maxBuffer: 1024 * 1024 * 10
-                        });
+      if (stderr) {
+        console.error(`Command execution resulted in an error: ${stderr}`);
+        return message.reply(`Command execution resulted in an error: ${stderr}`);
+      }
 
-                        let output = "";
-                        if (stdout) output += stdout;
-                        if (stderr) output += stderr;
-
-                        if (!output) output = "Command executed successfully (no output)";
-
-                        if (output.length > 2000) {
-                                output = output.substring(0, 1997) + "...";
-                        }
-
-                        return message.reply(getLang("output", output));
-                } catch (error) {
-                        let errorMsg = error.message;
-                        if (errorMsg.includes("ETIMEDOUT") || errorMsg.includes("timeout"))
-                                return message.reply(getLang("timeout"));
-
-                        if (errorMsg.length > 2000) {
-                                errorMsg = errorMsg.substring(0, 1997) + "...";
-                        }
-
-                        return message.reply(getLang("error", errorMsg));
-                }
-        }
+      console.log(`Command executed successfully:\n${stdout}`);
+      message.reply(`Command executed successfully:\n${stdout}`);
+    });
+  }
 };

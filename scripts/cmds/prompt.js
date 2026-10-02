@@ -1,49 +1,108 @@
 const axios = require("axios");
 
+const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_KEY = "xalman-hub";
+let apiBaseUrl = null;
+let apiConfigRequest = null;
+
+async function getApiBaseUrl() {
+  if (apiBaseUrl) return apiBaseUrl;
+
+  if (!apiConfigRequest) {
+    apiConfigRequest = axios
+      .get(API_CONFIG_URL, { timeout: 15000 })
+      .then(({ data }) => {
+        const baseUrl = data?.[API_KEY];
+
+        if (typeof baseUrl !== "string" || !baseUrl.trim()) {
+          throw new Error(`Missing API key in apis.json: ${API_KEY}`);
+        }
+
+        apiBaseUrl = baseUrl.replace(/\/+$/, "");
+        return apiBaseUrl;
+      })
+      .finally(() => {
+        apiConfigRequest = null;
+      });
+  }
+
+  return apiConfigRequest;
+}
+
 module.exports = {
   config: {
     name: "prompt",
-    version: "1.0",
-    author: "Siam Ahmed Saan",
+    aliases: ["imgprompt", "p"],
+    version: "4.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "Get prompt from image" },
-    longDescription: { en: "Extracts prompt from an image URL or replied image." },
-    category: "ai",
-    guide: { en: "{pn} [image url] or reply to an image" }
+    shortDescription: "Generate prompt from image",
+    longDescription: "Generate an AI prompt from a replied image",
+    category: "AI",
+    guide: "{pn} (reply to an image)"
   },
 
-  onStart: async function ({ message, args, event, api }) {
-    let imageUrl = args[0];
-    const { type, messageReply } = event;
+  onStart: async function ({ api, event }) {
+    const { threadID, messageID, type, messageReply } = event;
 
-    if (type === "message_reply" && messageReply.attachments?.[0]?.type === "photo") {
-      imageUrl = messageReply.attachments[0].url;
+    if (type !== "message_reply" || !messageReply?.attachments?.length) {
+      return api.sendMessage(
+        "❌ Please reply to an image to generate a prompt.",
+        threadID,
+        messageID
+      );
     }
 
-    if (!imageUrl) return message.reply("Please provide an image URL or reply to an image.");
+    const attachment = messageReply.attachments.find(
+      item => item?.type === "photo" && item?.url
+    );
+
+    if (!attachment) {
+      return api.sendMessage(
+        "❌ Please reply to a valid image.",
+        threadID,
+        messageID
+      );
+    }
+
+    api.setMessageReaction("🔍", messageID, () => {}, true);
 
     try {
-      api.setMessageReaction("⏳", event.messageID);
-      
-      const res = await axios.get(`https://smfahim.xyz/ai/img2prompt/v3`, {
-        params: {
-          imageUrl: imageUrl,
-          language: "en",
-          model: "0"
+      const response = await axios.get(
+        `${await getApiBaseUrl()}/api/prompt`,
+        {
+          params: { url: attachment.url },
+          timeout: 120000
         }
-      });
+      );
 
-      if (res.data.success && res.data.prompt) {
-        message.reply(res.data.prompt);
-        api.setMessageReaction("✅", event.messageID);
-      } else {
-        throw new Error();
+      const data = response?.data;
+
+      if (!data?.status || !data?.prompt) {
+        throw new Error(data?.error || data?.message || "Prompt not found");
       }
 
-    } catch (err) {
-      api.setMessageReaction("❌", event.messageID);
-      message.reply("Failed to extract prompt from this image.");
+      const prompt = String(data.prompt)
+        .replace(/\\n/g, " ")
+        .replace(/\r?\n|\r/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      api.setMessageReaction("✅", messageID, () => {}, true);
+
+      const msg = `🖼️ 𝗜𝗠𝗔𝗚𝗘 𝗣𝗥𝗢𝗠𝗣𝗧\n━━━━━━━━━━━━━━━━━━\n${prompt}`;
+
+      return api.sendMessage(msg, threadID, messageID);
+
+    } catch (error) {
+      console.error("Prompt Error:", error.message);
+      api.setMessageReaction("❌", messageID, () => {}, true);
+      return api.sendMessage(
+        "❌ Failed to analyze the image. Please try again.",
+        threadID,
+        messageID
+      );
     }
   }
 };

@@ -1,62 +1,76 @@
 const axios = require("axios");
+const { createCanvas, loadImage } = require("canvas");
 const fs = require("fs-extra");
 const path = require("path");
 
 module.exports = {
   config: {
     name: "jail",
-    aliases: ["prison"],
-    version: "1.0",
-    author: "Siam Ahmed Saan",
+    version: "1.0.0",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
-    description: "Put someone in jail 😆",
-    category: "fun",
+    shortDescription: "jail picture",
+    longDescription: "Overlay jail bars on user's profile picture",
+    category: "FUN & SOCIAL",
     guide: {
-      en: "{pn} @tag or reply to a message"
+      en: "{pn} [@mention / reply / UID]"
     }
   },
 
-  langs: {
-    en: {
-      noTarget: "⚠️ You must tag someone or reply to their message."
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID, mentions, type, messageReply, senderID } = event;
+    let targetID;
+    if (type === "message_reply") {
+      targetID = messageReply.senderID;
+    } else if (Object.keys(mentions).length > 0) {
+      targetID = Object.keys(mentions)[0];
+    } else if (args.length > 0 && !isNaN(args[0])) {
+      targetID = args[0];
+    } else {
+      targetID = senderID;
     }
-  },
 
-  onStart: async function ({ event, message, usersData, getLang }) {
     try {
-      let targetID;
+      const info = await api.getUserInfo(targetID);
+      const name = info[targetID].name;
 
-      if (Object.keys(event.mentions).length > 0) {
-        targetID = Object.keys(event.mentions)[0];
-      } else if (event.messageReply) {
-        targetID = event.messageReply.senderID;
-      }
+      api.sendMessage(`⏳ Putting ${name} behind bars... 🚔`, threadID, messageID);
 
-      if (!targetID) return message.reply(getLang("noTarget"));
+      const avatarURL = `https://graph.facebook.com/${targetID}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+      const templateURL = "https://raw.githubusercontent.com/goatbotnx/Sexy-nx2.0Updated/main/xalman/xalmanimg/images/nx-jail.png";
 
-      const userInfo = await usersData.getName(targetID);
-      const avatarURL = await usersData.getAvatarUrl(targetID);
+      const [avatarRes, templateRes] = await Promise.all([
+        axios.get(avatarURL, { responseType: 'arraybuffer' }),
+        axios.get(templateURL, { responseType: 'arraybuffer' })
+      ]);
 
-      const apiBaseRes = await axios.get("https://raw.githubusercontent.com/Saim-x69x/sakura/main/ApiUrl.json");
-      const apiBase = apiBaseRes.data?.apiv1;
-      if (!apiBase) return message.reply("❌ API base URL not found in ApiUrl.json.");
+      const avatarImg = await loadImage(avatarRes.data);
+      const templateImg = await loadImage(templateRes.data);
 
-      const apiURL = `${apiBase}/api/jail?url=${encodeURIComponent(avatarURL)}`;
-      const imgPath = path.join(__dirname, "tmp", `${targetID}_jail.png`);
+      const canvasSize = 512;
+      const canvas = createCanvas(canvasSize, canvasSize);
+      const ctx = canvas.getContext('2d');
 
-      const response = await axios.get(apiURL, { responseType: "arraybuffer" });
-      await fs.outputFile(imgPath, response.data);
+      ctx.drawImage(avatarImg, 0, 0, canvasSize, canvasSize);
 
-      await message.reply({
-        body: `🚔 ${userInfo} is now behind bars!`,
-        attachment: fs.createReadStream(imgPath)
-      });
+      ctx.drawImage(templateImg, 0, 0, canvasSize, canvasSize);
 
-      fs.unlinkSync(imgPath);
-    } catch (err) {
-      console.error(err);
-      message.reply("❌ Failed to generate jail image. Please try again later.");
+      const cacheDir = path.join(__dirname, 'cache');
+      if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
+      const pathSave = path.join(cacheDir, `jail_${targetID}.png`);
+      fs.writeFileSync(pathSave, canvas.toBuffer());
+
+      return api.sendMessage({
+        body: `${name} is in jail now.👮‍♂️⛓️`,
+        attachment: fs.createReadStream(pathSave)
+      }, threadID, () => {
+        if (fs.existsSync(pathSave)) fs.unlinkSync(pathSave);
+      }, messageID);
+
+    } catch (error) {
+      console.error(error);
+      return api.sendMessage("❌ Failed to put user in jail. The suspect escaped! 🏃‍♂️", threadID, messageID);
     }
   }
 };

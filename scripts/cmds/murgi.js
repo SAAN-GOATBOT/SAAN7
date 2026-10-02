@@ -10,7 +10,7 @@ module.exports = {
     name: "murgi",
     aliases: ["chicken", "poultry", "cluck"],
     version: "3.2",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 5,
     role: 0,
     shortDescription: { en: "Turn someone into a chicken" },
@@ -61,7 +61,7 @@ module.exports = {
       const imageStream = await generateChickenImage(targetID);
       await api.unsendMessage(tempMsg.messageID);
 
-      const reply = `🐔 এই নে মুরগি বানিয়ে দিলাম ${name}!`;
+      const reply = `🐔 এই নে মুরগী বানিয়ে দিলাম ${name}!`;
 
       await api.sendMessage(
         {

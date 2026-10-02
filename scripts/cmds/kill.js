@@ -10,7 +10,7 @@ module.exports = {
     name: "kill",
     aliases: ["killed"],
     version: "2.0",
-    author: "Siam Ahmed Saan",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     role: 0,
     countDown: 5,
     shortDescription: "Make a kidnap-style image",
@@ -20,7 +20,7 @@ module.exports = {
   },
 
   onStart: async function ({ api, event, message, usersData }) {
-    api.setMessageReaction("⏳", event.messageID, () => {}, true);
+    api.setMessageReaction("🕜", event.messageID, () => {}, true);
 
     const senderID = event.senderID;
     let targetID = null;
