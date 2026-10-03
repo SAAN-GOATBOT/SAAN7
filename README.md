@@ -67,7 +67,7 @@
 |:--------------------:|:------------------:|:----------------------:|
 | Download from YouTube, TikTok, Spotify in chat | DeepAI, DeepSeek, Midjourney integrations | Daily rewards, bank, casino, rank cards |
 
-| 🔒 **Permission System** | 📦 **245+ Commands** | 🎨 **Customizable** |
+| 🔒 **Permission System** | 📦 **325+ Commands** | 🎨 **Customizable** |
 |:------------------------:|:--------------------:|:--------------------:|
 | 7-level role-based access control | Extensive command library | Fully customizable bot experience |
 
