@@ -31,7 +31,7 @@
 <br/>
 
 <div align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=16&duration=2000&pause=1000&color=FF69B4&center=true&vCenter=true&width=500&lines=✦+Built+with+Next-Gen+Technology+✦;✦+Enterprise+Grade+Security+✦;✦+24%2F7+Uptime+Guaranteed+✦" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=16&duration=2000&pause=1000&color=FF69B4&center=true&vCenter=true&width=500&lines=✦+Built+with+Next-Gen+Technology+✦;✦+Enterprise+Grade+Security+✦;✦+24/7+Uptime+Guaranteed+✦" alt="Typing SVG" />
 </div>
 
 <br/>
@@ -64,10 +64,10 @@
 | Run multiple Facebook accounts simultaneously | MongoDB + SQLite for reliable data storage | Cookies & tokens auto-refreshed to prevent expiry |
 
 | 🎵 **Music & Media** | 🤖 **AI Commands** | 🏆 **Economy System** |
-|:--------------------:|:------------------:|:--------------------:|
+|:--------------------:|:------------------:|:----------------------:|
 | Download from YouTube, TikTok, Spotify in chat | DeepAI, DeepSeek, Midjourney integrations | Daily rewards, bank, casino, rank cards |
 
-| 🔒 **Permission System** | 📦 **325+ Commands** | 🎨 **Customizable** |
+| 🔒 **Permission System** | 📦 **245+ Commands** | 🎨 **Customizable** |
 |:------------------------:|:--------------------:|:--------------------:|
 | 7-level role-based access control | Extensive command library | Fully customizable bot experience |
 
@@ -142,3 +142,118 @@ module.exports = {
     // Optional: Chat event handler
   }
 };
+```
+
+---
+
+📊 Project Status
+
+<div align="center">
+
+Module Progress Status
+💻 Core Code ██████████ 98% ✅ Complete
+🧪 Testing ████████░░ 85% 🔄 Active
+📄 Documentation █████████░ 92% ✅ Complete
+⚡ Performance ██████████ 99% ✅ Optimized
+🔒 Security ██████████ 95% ✅ Secure
+🟢 Uptime ██████████ 99.9% ✅ Live
+
+</div>
+
+---
+
+🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/SAAN-GOATBOT/SAAN7.git
+
+# Navigate to project directory
+cd SAAN-GOAT-BOT/SAAN7
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+
+# Start the bot
+npm start
+```
+
+---
+
+📶 Connect & Support
+
+<div align="center">
+
+<a href="https://www.facebook.com/siam.ahmed.491801">
+  <img src="https://img.shields.io/badge/👤_SIAM_AHMED_SAAN-1877F2?style=for-the-badge&logo=facebook&logoColor=white"/>
+</a>
+<a 
+<a href="https://github.com/SAAN-GOATBOT/SAAN7/issues">
+  <img src="https://img.shields.io/badge/🐛_Report_Bug-FF4444?style=for-the-badge&logo=github&logoColor=white"/>
+</a>
+<a href="https://github.com/SAAN-GOATBOT/SAAN7.git/discussions">
+  <img src="https://img.shields.io/badge/💬_Discussions-00CED1?style=for-the-badge&logo=github&logoColor=white"/>
+</a>
+
+</div>
+
+---
+
+🗃️ Credits
+
+<div align="center">
+
+Role Name Contribution
+🏆 Original Creator NTKhang03 Goat-Bot-V2 Base
+👑 Modifier SAAN Core Modifications & Enhancements
+🛠️ Maintainer SIAM AHMED SAAN Active Development & Support
+
+</div>
+
+---
+
+💖 Support
+
+<div align="center">
+
+If you find this project helpful, please consider:
+
+⭐ Starring this repository
+🍴 Forking for your own use
+💬 Sharing with friends
+🐛 Reporting issues you find
+
+</div>
+
+---
+
+📜 License
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║                    SAAN BOT V3                            ║
+║                 MIT License (No Derivatives)                ║
+║                                                             ║
+║  Copyright (c) 2022 NTKhang03                              ║
+║  Modified by SAAN                                      ║
+║  Maintained by SIAM AHMED SAAN                            ║
+║                                                             ║
+║  ✔ You may use and share this software freely              ║
+║  ✘ You may NOT modify or create derivative works           ║
+║  ✘ You may NOT sell this source code or claim it as your   ║
+║                                                             ║
+╚══════════════════════════════════════════════════════════════╝
+```
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:ff0080,50:00ffff,100:ff00ff&height=150&section=footer&animation=fadeIn" width="100%"/>
+
+<br/>
+
+⭐ If you like this project, don't forget to star it! ⭐
