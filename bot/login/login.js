@@ -655,24 +655,6 @@ async function safeGetUserName(userID, api, usersData = null) {
 
 async function startBot(loginWithEmail) {
         console.log(colors.hex("#f5ab00")(createLine("START LOGGING IN", true)));
-        const currentVersion = require("../../package.json").version;
-        
-        // Fix version check with error handling
-        let tooOldVersion = "0.0.0";
-        try {
-                const response = await axiosInstance.get("https://raw.githubusercontent.com/ncazad/X69X-BOT-V3-Storage-/main/tooOldVersions.txt", {
-                        timeout: 10000
-                });
-                tooOldVersion = response.data || "0.0.0";
-        } catch (error) {
-                console.warn("Cannot get latest version info:", error.message);
-        }
-        
-        if ([-1, 0].includes(compareVersion(currentVersion, tooOldVersion))) {
-                log.err("VERSION", getText('version', 'tooOldVersion', colors.yellowBright('node update')));
-                process.exit();
-        }
-
         if (global.GoatBot.Listening)
                 await stopListening();
 

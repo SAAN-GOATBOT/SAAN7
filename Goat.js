@@ -263,17 +263,6 @@ if (config.autoRestart) {
 	global.utils.sendMail = sendMail;
 	global.utils.transporter = transporter;
 
-	const { data: { version } } = await axios.get("https://raw.githubusercontent.com/ncazad/Azadx69x/refs/heads/main/package.json");
-	const currentVersion = require("./package.json").version;
-	if (compareVersion(version, currentVersion) === 1)
-		utils.log.master("NEW VERSION", getText(
-			"Goat",
-			"newVersionDetected",
-			colors.gray(currentVersion),
-			colors.hex("#eb6a07", version),
-			colors.hex("#eb6a07", "node update")
-		));
-
 	const parentIdGoogleDrive = await utils.drive.checkAndCreateParentFolder("GoatBot");
 	utils.drive.parentID = parentIdGoogleDrive;
 
