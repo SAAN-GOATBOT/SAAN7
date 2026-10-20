@@ -9,7 +9,7 @@ module.exports = {
   config: {
     name: "top",
     version: "7.1",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     shortDescription: {
       en: "Top Balance Leaderboard"
@@ -1228,7 +1228,7 @@ function drawFooter(
     "#36dfff";
 
   ctx.fillText(
-    "◆  GOAT-BOT-UPDATED ◆",
+    "◆  SAAN-GOAT-BOT ◆",
     width / 2,
     height - 70
   );
@@ -1240,7 +1240,7 @@ function drawFooter(
     "rgba(255,255,255,0.45)";
 
   ctx.fillText(
-    "MADE BY XALMAN  •  BIGGER BALANCE, BIGGER DREAMS",
+    "MADE BY 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃  •  BIGGER BALANCE, BIGGER DREAMS",
     width / 2,
     height - 43
   );
@@ -1462,4 +1462,4 @@ function cleanupFile(
       }
     } catch (error) {}
   }, 5000);
-}
+    }
