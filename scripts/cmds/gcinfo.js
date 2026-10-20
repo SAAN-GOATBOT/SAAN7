@@ -3,7 +3,7 @@ module.exports = {
     name: "gcinfo",
     aliases: ["groupinfo", "ginfo"],
     version: "0.0.7",
-    author: "Azadx69x",
+    author: "Saan Exhausted",
     countDown: 3,
     role: 0,
     shortDescription: {

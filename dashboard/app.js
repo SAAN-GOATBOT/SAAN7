@@ -196,7 +196,7 @@ module.exports = async (api) => {
         app.get(["/health", "/ping", "/alive"], (req, res) => {
                 res.status(200).json({
                         status: "ok",
-                        bot: global.GoatBot?.config?.nameBot || "X69X BOT V3",
+                        bot: global.GoatBot?.config?.nameBot || "SAAN GOAT BOT",
                         uptime: Math.floor(process.uptime()),
                         timestamp: new Date().toISOString()
                 });
@@ -247,7 +247,7 @@ module.exports = async (api) => {
                         botID,
                         prefix: cfg.prefix || ")",
                         language: cfg.language || "en",
-                        nameBot: cfg.nameBot || "X69X BOT V3",
+                        nameBot: cfg.nameBot || "SAAN GOAT BOT",
                         dbType,
                         nodeVersion: process.version
                 });

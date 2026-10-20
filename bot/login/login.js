@@ -1,5 +1,5 @@
 // set bash title
-process.stdout.write("\x1b]2;X69X BOT V3 - Made by NTKhang,\x1b\x5c");
+process.stdout.write("\x1b]2;SAAN GOAT BOT - Made by NTKhang,\x1b\x5c");
 const defaultRequire = require;
 
 function decode(text) {
@@ -91,7 +91,7 @@ const titles = [
                 "╚═════╝░░╚════╝░░░░╚═╝░░░  ░░░╚═╝░░░╚═════╝░"
         ],
         [
-                "X69X BOT V3"
+                "SAAN GOAT BOT"
         ]
 ];
 
@@ -105,7 +105,7 @@ for (const text of title) {
         const textColor = gradient("#00b4db", "#0083b0")(text);
         centerText(textColor, text.length);
 }
-let subTitle = `X69X BOT V3@${currentVersion} - Made by Azadx69x`;
+let subTitle = `SAAN GOAT BOT@${currentVersion} - Made by Saan Exhausted`;
 const subTitleArray = [];
 if (subTitle.length > maxWidth) {
         while (subTitle.length > maxWidth) {
@@ -119,8 +119,8 @@ if (subTitle.length > maxWidth) {
 else {
         subTitleArray.push(subTitle);
 }
-const author = ("Made by Azadx69x");
-const srcUrl = ("Source code: https://github.com/ncazad/X69X-BOT-V3");
+const author = ("Made by Saan Exhausted");
+const srcUrl = ("Source code: https://github.com/SAAN-GOATBOT/SAAN7");
 const fakeRelease = ("ALL VERSIONS NOT RELEASED HERE ARE FAKE");
 
 // Apply beautiful colors to all text
@@ -753,8 +753,8 @@ async function startBot(loginWithEmail) {
                         
                         log.info("PREFIX", global.GoatBot.config.prefix);
                         log.info("LANGUAGE", global.GoatBot.config.language);
-                        log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "X69X BOT V3");
-                        log.info("MAINTAINER", "NTKhang  | Azadx69x");
+                        log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "SAAN GOAT BOT");
+                        log.info("MAINTAINER", "NTKhang  | Saan Exhausted");
                         
                         // GBAN check with error handling
                         let dataGban = {};
@@ -1115,7 +1115,7 @@ async function startBot(loginWithEmail) {
                         log.master("LOAD TIME", `${convertTime(Date.now() - global.GoatBot.startTime)}`);
                         logColor("#f5ab00", createLine("COPYRIGHT"));
                         
-                        console.log(`\x1b[1m\x1b[33m${("COPYRIGHT:")}\x1b[0m\x1b[1m\x1b[37m \x1b[0m\x1b[1m\x1b[36m${("Project X69X BOT V3  by Azadx69x (https://github.com/ncazad),Please do not sell this source code or claim it as your own. Thank you!")}\x1b[0m`);
+                        console.log(`\x1b[1m\x1b[33m${("COPYRIGHT:")}\x1b[0m\x1b[1m\x1b[37m \x1b[0m\x1b[1m\x1b[36m${("Project SAAN GOAT BOT  by Saan Exhausted (https://github.com/SAAN-GOATBOT),Please do not sell this source code or claim it as your own. Thank you!")}\x1b[0m`);
                         logColor("#f5ab00", character);
                         
                         global.GoatBot.config.adminBot = adminBot;

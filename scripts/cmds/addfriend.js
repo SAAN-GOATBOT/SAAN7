@@ -3,7 +3,7 @@ module.exports = {
         name: "addfriend",
         aliases: ["adfd"],
         version: "0.0.7",
-        author: "Azadx69x",
+        author: "Saan Exhausted",
         countDown: 10,
         role: 6,
         shortDescription: {
@@ -102,7 +102,7 @@ module.exports = {
                 `❌ | Failed: ${failed}\n` +
                 `⏭️ | Skipped Already Friends: ${skipped}\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
-                `🤖 | X69X BOT V3`;
+                `🤖 | SAAN GOAT BOT`;
 
             return message.reply(report);
 

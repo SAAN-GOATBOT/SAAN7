@@ -6,7 +6,7 @@ module.exports = {
     aliases: ["ss"],
     version: "0.0.7",
     role: 0,
-    author: "Azadx69x",
+    author: "Saan Exhausted",
     description: "Take any website screenshot",
     category: "utility",
     countDown: 5

@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "imgx",
     version: "0.0.7",
-    author: "Azadx69x",
+    author: "Saan Exhausted",
     countDown: 5,
     role: 0,
     shortDescription: "Generate image",
