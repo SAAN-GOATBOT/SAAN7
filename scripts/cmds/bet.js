@@ -1,206 +1,136 @@
 module.exports = {
   config: {
     name: "bet",
-    version: "12.2",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    version: "12.0",
+    author: "Saan",
+    role: 0,
+    countDown: 10,
+    category: "GAMES",
     shortDescription: {
-      en: "Random multiplier bet game with 5-hour limit"
+      en: "Premium betting game"
     },
     longDescription: {
-      en: "Place a bet and win. 59% normal win, 2% normal loss, 2% jackpot and 37% draw. 12 plays per 5 hours with 12 seconds cooldown."
+      en: "Bet your balance and try your luck."
     },
-    category: "GAMES",
+    guide: {
+      en: "{pn} <amount/all>"
+    }
   },
 
   langs: {
     en: {
       invalid_amount:
-        "❌ 𝗜𝗡𝗩𝗔𝗟𝗜𝗗 𝗔𝗠𝗢𝗨𝗡𝗧\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "⚠️ Minimum bet: 1,000৳\n" +
-        "💡 Usage: /bet 100k | all",
+        "╭━━━〔 🎰 𝐁𝐄𝐓 〕━━━╮\n" +
+        "┃ ❌ Invalid amount!\n" +
+        "┃ 💰 Minimum: 1K\n" +
+        "┃ 🎯 Example: /bet 100k\n" +
+        "╰━━━━━━━━━━━━━━━━╯",
 
       not_enough_money:
-        "🚫 𝗜𝗡𝗦𝗨𝗙𝗙𝗜𝗖𝗜𝗘𝗡𝗧 𝗙𝗨𝗡𝗗𝗦\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "💵 Balance: %1৳\n" +
-        "💸 You need more money to play!",
+        "╭━━━〔 💸 𝐋𝐎𝐖 𝐁𝐀𝐋𝐀𝐍𝐂𝐄 〕━━━╮\n" +
+        "┃ 💳 Balance: %1$\n" +
+        "┃ ❌ Insufficient funds!\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯",
 
       max_bet:
-        "🛡️ 𝗦𝗘𝗖𝗨𝗥𝗜𝗧𝗬 𝗔𝗟𝗘𝗥𝗧\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "🚫 Max bet limit: 500M\n" +
-        "⚠️ High stakes blocked by system!",
-
-      cooldown:
-        "⏳ 𝗖𝗢𝗢𝗟𝗗𝗢𝗪𝗡\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "⚠️ Please wait %1 seconds before betting again.",
+        "🚫 Maximum bet: 1000T$",
 
       limit_reached:
-        "🚫 𝗟𝗜𝗠𝗜𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "⚠️ You've played 12 times in 5 hours.\n" +
-        "⏳ Try again in %1 minutes.",
+        "╭━━━〔 🎰 𝐁𝐄𝐓 〕━━━╮\n" +
+        "┃ ❌ You've used all 15 plays.\n" +
+        "┃ 🎮 Try again later.\n" +
+        "╰━━━━━━━━━━━━━━━━╯",
+
+      spinning:
+        "╭━━━〔 🎰 𝐁𝐄𝐓 〕━━━╮\n" +
+        "┃ 🎲 Rolling your luck...\n" +
+        "┃ ✨ Good luck!\n" +
+        "╰━━━━━━━━━━━━━━━━╯",
 
       win:
-        "✨ 𝗪𝗜𝗡𝗡𝗘𝗥 𝗗𝗘𝗖𝗟𝗔𝗥𝗘𝗗 ✨\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "💰 𝗦𝘁𝗮𝘁𝘂𝘀: SUCCESS\n" +
-        "📈 𝗠𝘂𝗹𝘁𝗶𝗽𝗹𝗶𝗲𝗿: %1×\n" +
-        "💵 𝗣𝗿𝗼𝗳𝗶𝘁: +%2৳\n" +
-        "💳 𝗡𝗲𝘄 𝗕𝗮𝗹𝗮𝗻𝗰𝗲: %3৳\n" +
-        "📊 𝗨𝘀𝗮𝗴𝗲: %4/12\n" +
-        "━━━━━━━━━━━━━━━━━━",
+        "╭━━━〔 🏆 𝐁𝐄𝐓 𝐖𝐈𝐍 〕━━━╮\n" +
+        "┃ ✨ Result: WINNER\n" +
+        "┃ 🎯 Multiplier: %1x\n" +
+        "┃ 💰 Profit: +%2$\n" +
+        "┃ 💳 Balance: %3$\n" +
+        "┃ 🎮 Plays: %4/15\n" +
+        "╰━━━━━━━━━━━━━━━━━━╯\n" +
+        "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲",
 
       jackpot:
-        "🔥 𝗝𝗔𝗖𝗞𝗣𝗢𝗧 𝗕𝗢𝗡𝗨𝗦 🔥\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "💎 𝗥𝗮𝗿𝗶𝘁𝘆: LEGENDARY\n" +
-        "🎰 𝗥𝗲𝘄𝗮𝗿𝗱: 50× Multiplier\n" +
-        "💰 𝗔𝗺𝗼𝘂𝗻𝘁: +%1৳\n" +
-        "💳 𝗡𝗲𝘄 𝗕𝗮𝗹𝗮𝗻𝗰𝗲: %2৳\n" +
-        "📊 𝗨𝘀𝗮𝗴𝗲: %3/12\n" +
-        "━━━━━━━━━━━━━━━━━━",
+        "╭━━━〔 💎 𝐉𝐀𝐂𝐊𝐏𝐎𝐓 〕━━━╮\n" +
+        "┃ 🔥 LEGENDARY WIN!\n" +
+        "┃ 🎯 Multiplier: 50x\n" +
+        "┃ 💰 Reward: +%1$\n" +
+        "┃ 💳 Balance: %2$\n" +
+        "┃ 🎮 Plays: %3/15\n" +
+        "╰━━━━━━━━━━━━━━━━━━╯\n" +
+        "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲",
 
       lose:
-        "💀 𝗚𝗔𝗠𝗘 𝗢𝗩𝗘𝗥 💀\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "🔻 𝗦𝘁𝗮𝘁𝘂𝘀: FAILED\n" +
-        "📉 𝗟𝘂𝗰𝗸: EXPIRED\n" +
-        "💸 𝗟𝗼𝘀𝘁: -%1৳\n" +
-        "💳 𝗡𝗲𝘄 𝗕𝗮𝗹𝗮𝗻𝗰𝗲: %2৳\n" +
-        "📊 𝗨𝘀𝗮𝗴𝗲: %3/12\n" +
-        "━━━━━━━━━━━━━━━━━━",
-
-      draw:
-        "⚖️ 𝗗𝗥𝗔𝗪 𝗥𝗘𝗦𝗨𝗟𝗧\n" +
-        "━━━━━━━━━━━━━━━━━━\n" +
-        "🔄 𝗦𝘁𝗮𝘁𝘂𝘀: DRAW\n" +
-        "💰 𝗣𝗿𝗼𝗳𝗶𝘁: +0৳\n" +
-        "💳 𝗡𝗲𝘄 𝗕𝗮𝗹𝗮𝗻𝗰𝗲: %1৳\n" +
-        "📊 𝗨𝘀𝗮𝗴𝗲: %2/12\n" +
-        "━━━━━━━━━━━━━━━━━━"
-    },
+        "╭━━━〔 💔 𝐁𝐄𝐓 𝐋𝐎𝐒𝐒 〕━━━╮\n" +
+        "┃ 💀 Result: YOU LOST\n" +
+        "┃ 💸 Lost: -%1$\n" +
+        "┃ 💳 Balance: %2$\n" +
+        "┃ 🎮 Plays: %3/15\n" +
+        "╰━━━━━━━━━━━━━━━━━━╯\n" +
+        "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲"
+    }
   },
 
-  onStart: async function ({
-    args,
-    message,
-    event,
-    usersData,
-    getLang
-  }) {
-    const { senderID } = event;
+  onStart: async function ({ args, message, event, usersData, api, getLang }) {
+    const { senderID, threadID } = event;
+
+    const format = (n) => {
+      n = Number(n);
+
+      if (!Number.isFinite(n)) return "∞";
+
+      const units = [
+        { v: 1e12, s: "T" },
+        { v: 1e9, s: "B" },
+        { v: 1e6, s: "M" },
+        { v: 1e3, s: "K" }
+      ];
+
+      for (const u of units) {
+        if (Math.abs(n) >= u.v) {
+          return (n / u.v)
+            .toFixed(2)
+            .replace(/\.00$/, "")
+            .replace(/(\.\d)0$/, "$1") + u.s;
+        }
+      }
+
+      return n.toLocaleString("en-US", {
+        maximumFractionDigits: 2
+      });
+    };
 
     const userData = await usersData.get(senderID);
-    const balance = userData.money || 0;
+
+    if (!userData) {
+      return message.reply("⚠️ User data not found.");
+    }
+
+    const balance = Number(userData.money || 0);
     const input = args[0]?.toLowerCase();
 
     if (!input) {
       return message.reply(
-        "❓ Syntax: /bet <amount/all/max>"
+        "🎰 𝐁𝐄𝐓 𝐆𝐀𝐌𝐄\n\n" +
+        "➤ /bet 1k\n" +
+        "➤ /bet 100k\n" +
+        "➤ /bet all"
       );
     }
 
-    // ==============================
-    // BET SETTINGS
-    // ==============================
+    function parseAmount(str, userBalance) {
+      if (str === "all") return userBalance;
 
-    const MIN_BET = 1000;
-    const MAX_BET = 500000000; // 500M
+      const match = str.match(/^(\d+(?:\.\d+)?)([kmbt])?$/);
 
-    const PLAY_LIMIT = 12;
-    const RESET_TIME = 5 * 60 * 60 * 1000; // 5 hours
-    const COOLDOWN = 12 * 1000; // 12 seconds
-
-    // ==============================
-    // GLOBAL BET DATA
-    // ==============================
-
-    if (!global.betLimit) {
-      global.betLimit = {};
-    }
-
-    const now = Date.now();
-
-    if (!global.betLimit[senderID]) {
-      global.betLimit[senderID] = {
-        count: 0,
-        lastReset: now,
-        lastPlay: 0
-      };
-    }
-
-    const userLimit = global.betLimit[senderID];
-
-    // ==============================
-    // RESET AFTER 5 HOURS
-    // ==============================
-
-    if (now - userLimit.lastReset >= RESET_TIME) {
-      userLimit.count = 0;
-      userLimit.lastReset = now;
-    }
-
-    // ==============================
-    // 12 SECOND COOLDOWN
-    // ==============================
-
-    const timeSinceLastPlay =
-      now - userLimit.lastPlay;
-
-    if (
-      userLimit.lastPlay > 0 &&
-      timeSinceLastPlay < COOLDOWN
-    ) {
-      const remaining = Math.ceil(
-        (COOLDOWN - timeSinceLastPlay) / 1000
-      );
-
-      return message.reply(
-        getLang("cooldown", remaining)
-      );
-    }
-
-    // ==============================
-    // 12 PLAYS / 5 HOURS
-    // ==============================
-
-    if (userLimit.count >= PLAY_LIMIT) {
-      const timeLeft = Math.ceil(
-        (RESET_TIME -
-          (now - userLimit.lastReset)) /
-        (1000 * 60)
-      );
-
-      return message.reply(
-        getLang("limit_reached", timeLeft)
-      );
-    }
-
-    // ==============================
-    // FORCE WIN
-    // ==============================
-
-    const isForceWin = input.endsWith(".win");
-
-    const cleanInput = isForceWin
-      ? input.replace(".win", "")
-      : input;
-
-    // ==============================
-    // AMOUNT PARSER
-    // ==============================
-
-    function parseAmount(str, userBal) {
-      if (str === "all") {
-        return userBal;
-      }
-
-      if (str === "max") {
-        return MAX_BET;
-      }
+      if (!match) return NaN;
 
       const units = {
         k: 1e3,
@@ -209,204 +139,107 @@ module.exports = {
         t: 1e12
       };
 
-      const match = str.match(
-        /^(\d+(\.\d+)?)([kmbt])?$/
-      );
-
-      if (!match) {
-        return null;
-      }
-
-      const num = parseFloat(match[1]);
-      const unit = match[3];
-
-      return unit
-        ? num * units[unit]
-        : num;
+      return Number(match[1]) * (units[match[2]] || 1);
     }
 
-    const bet = parseAmount(
-      cleanInput,
-      balance
-    );
+    const bet = parseAmount(input, balance);
+    const minBet = 1000;
+    const maxBet = 1000e12;
 
-    // ==============================
-    // VALIDATION
-    // ==============================
-
-    if (
-      bet === null ||
-      isNaN(bet) ||
-      !isFinite(bet) ||
-      bet < MIN_BET
-    ) {
-      return message.reply(
-        getLang("invalid_amount")
-      );
+    if (!Number.isFinite(bet) || bet < minBet) {
+      return message.reply(getLang("invalid_amount"));
     }
 
-    if (bet > MAX_BET) {
-      return message.reply(
-        getLang("max_bet")
-      );
+    if (bet > maxBet) {
+      return message.reply(getLang("max_bet"));
     }
 
-    if (balance < bet) {
-      return message.reply(
-        getLang(
-          "not_enough_money",
-          format(balance)
-        )
-      );
+    if (bet > balance) {
+      return message.reply(getLang("not_enough_money", format(balance)));
     }
 
-    // ==============================
-    // COUNT PLAY
-    // ==============================
+    if (!global.betLimit) global.betLimit = {};
 
-    userLimit.count++;
-    userLimit.lastPlay = now;
+    const now = Date.now();
+    const resetDuration = 12 * 60 * 60 * 1000;
+    let betData = global.betLimit[senderID];
 
-    const currentUsage = userLimit.count;
+    if (!betData || now - betData.lastReset >= resetDuration) {
+      betData = {
+        count: 0,
+        lastReset: now
+      };
 
-    // ==============================
-    // RESULT SYSTEM
-    // ==============================
-
-    let finalBal = balance;
-    let outMsg = "";
-
-    const rand = Math.random();
-
-    /*
-      Probability:
-
-      0%   -  2% = JACKPOT  (2%)
-      2%   - 61% = WIN      (59%)
-      61%  - 63% = LOSS     (2%)
-      63%  -100% = DRAW     (37%)
-
-      TOTAL WIN RATE = 61%
-    */
-
-    if (rand < 0.02 && !isForceWin) {
-
-      // ==========================
-      // JACKPOT — 2%
-      // ==========================
-
-      const jackpot = bet * 50;
-
-      finalBal += jackpot;
-
-      outMsg = getLang(
-        "jackpot",
-        format(jackpot),
-        format(finalBal),
-        currentUsage
-      );
-
-    } else if (
-      rand < 0.61 ||
-      isForceWin
-    ) {
-
-      // ==========================
-      // NORMAL WIN — 59%
-      // ==========================
-
-      const multi = (
-        Math.random() * (2.0 - 1.2) + 1.2
-      ).toFixed(1);
-
-      const win = Math.floor(
-        bet * (parseFloat(multi) - 1)
-      );
-
-      finalBal += win;
-
-      outMsg = getLang(
-        "win",
-        multi,
-        format(win),
-        format(finalBal),
-        currentUsage
-      );
-
-    } else if (rand < 0.63) {
-
-      // ==========================
-      // NORMAL LOSS — 2%
-      // ==========================
-
-      finalBal -= bet;
-
-      outMsg = getLang(
-        "lose",
-        format(bet),
-        format(finalBal),
-        currentUsage
-      );
-
-    } else {
-
-      // ==========================
-      // DRAW — 37%
-      // ==========================
-
-      outMsg = getLang(
-        "draw",
-        format(finalBal),
-        currentUsage
-      );
+      global.betLimit[senderID] = betData;
     }
 
-    // ==============================
-    // SAVE BALANCE
-    // ==============================
+    const maxPlays = 15;
 
-    await usersData.set(senderID, {
-      money: finalBal
-    });
+    if (betData.count >= maxPlays) {
+      return message.reply(getLang("limit_reached"));
+    }
 
-    // ==============================
-    // DIRECT RESULT
-    // No spinning message
-    // No editMessage
-    // ==============================
+    betData.count++;
 
-    return message.reply(outMsg);
+    const loader = await message.reply(getLang("spinning"));
 
-    // ==============================
-    // MONEY FORMAT
-    // ==============================
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-    function format(n) {
-      if (n >= 1e12) {
-        return (
-          (n / 1e12).toFixed(2) + "T"
+      const roll = Math.random() * 100;
+      let finalBalance;
+      let result;
+
+      if (roll < 1) {
+        // 1% Jackpot chance.
+        const reward = bet * 50;
+
+        finalBalance = balance + reward;
+
+        result = getLang(
+          "jackpot",
+          format(reward),
+          format(finalBalance),
+          betData.count
+        );
+      } else if (roll < 61) {
+        // 60% regular win chance.
+        const multiplier = Number(
+          (1.2 + Math.random() * 0.8).toFixed(1)
+        );
+
+        const profit = Math.floor(bet * (multiplier - 1));
+
+        finalBalance = balance + profit;
+
+        result = getLang(
+          "win",
+          multiplier.toFixed(1),
+          format(profit),
+          format(finalBalance),
+          betData.count
+        );
+      } else {
+        // 39% loss chance.
+        finalBalance = balance - bet;
+
+        result = getLang(
+          "lose",
+          format(bet),
+          format(finalBalance),
+          betData.count
         );
       }
 
-      if (n >= 1e9) {
-        return (
-          (n / 1e9).toFixed(2) + "B"
-        );
-      }
+      userData.money = finalBalance;
 
-      if (n >= 1e6) {
-        return (
-          (n / 1e6).toFixed(2) + "M"
-        );
-      }
+      await usersData.set(senderID, userData);
 
-      if (n >= 1e3) {
-        return (
-          (n / 1e3).toFixed(2) + "K"
-        );
-      }
+      return api.editMessage(result, loader.messageID, threadID);
+    } catch (error) {
+      console.error("[BET ERROR]", error);
 
-      return Math.floor(n).toLocaleString();
+      return message.reply("⚠️ An error occurred while processing your bet.");
     }
-  },
+  }
 };

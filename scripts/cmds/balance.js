@@ -3,14 +3,14 @@ const fs = require("fs-extra");
 const path = require("path");
 const axios = require("axios");
 
-const nx_210 = "xalman";
+const nx_210 = "Saan";
 
 module.exports = {
     config: {
         name: "balance",
         aliases: ["bal"],
         version: "6.0",
-        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+        author: "Saan",
         countDown: 2,
         role: 0,
         description: "View balance card, transfer money, and track balance history",
@@ -552,7 +552,7 @@ async function createBalanceCard({
         "rgba(255,255,255,0.45)";
 
     ctx.fillText(
-        "MADE BY 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃",
+        "MADE BY SAAN",
         745,
         420
     );

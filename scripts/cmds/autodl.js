@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-downloader";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -203,7 +203,7 @@ module.exports = {
   config: {
     name: "autodl",
     version: "22.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 1,
     role: 0,
     shortDescription: "Multi-Platform Media Downloader up to 22+",
@@ -627,7 +627,7 @@ module.exports = {
 🔻 SIZE — ${formatSize(stats.size)}
 🔻 TIME — ${elapsed}s
 ────────────────────
-⚙️ POWERED BY 𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍`;
+⚙️ POWERED BY SAAN`;
 
       await message.reply({
         body: caption,

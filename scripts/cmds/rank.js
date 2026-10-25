@@ -7,7 +7,7 @@ module.exports = {
 	config: {
 		name: "rank",
 		version: "5.5",
-		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+		author: "Saan",
 		countDown: 3,
 		role: 0,
 		description: "user balance exp rank card",
@@ -102,7 +102,7 @@ module.exports = {
 				ctx.fillRect(barX, barY, fillW, barH);
 
 				ctx.font = 'bold 20px Courier New'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-				ctx.fillText('Powered by step 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 ', width / 2, 580);
+				ctx.fillText('Powered by Saan ', width / 2, 580);
 
 				const cachePath = path.join(__dirname, 'cache', `${userID}_rank.png`);
 				fs.ensureDirSync(path.join(__dirname, 'cache'));

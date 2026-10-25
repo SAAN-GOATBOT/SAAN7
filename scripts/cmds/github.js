@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -33,7 +33,7 @@ module.exports = {
   config: {
     name: "github",
     version: "1.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     countDown: 5,
     shortDescription: { en: "Fetch GitHub user profile and top repositories" },
@@ -44,7 +44,7 @@ module.exports = {
   onStart: async function ({ api, event, args, message }) {
     const username = args[0];
     if (!username) {
-      return message.reply("❌ Please provide a GitHub username.\nExample: /github goatbotsaan");
+      return message.reply("❌ Please provide a GitHub username.\nExample: /github goatbotenyo");
     }
 
     try {

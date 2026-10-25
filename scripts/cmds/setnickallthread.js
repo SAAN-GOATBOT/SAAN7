@@ -3,7 +3,7 @@ module.exports = {
     name: "setallnick",
     version: "3.0",
     role: 2,
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     description: "Set bot nickname in all groups",
     category: "OWNER",
     guide: "{pn} <nickname>",

@@ -7,7 +7,7 @@ module.exports = {
     name: "stats",
     aliases: ["botstats"],
     version: "3.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     shortDescription: "Shows total users, groups, uptime and system stats",
     longDescription: "Fetches total users, groups, uptime, and system information.",

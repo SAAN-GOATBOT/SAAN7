@@ -2,7 +2,7 @@ module.exports = {
   config: {
     name: "listbox",
     aliases: ["grouplist", "listgroup"],
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     version: "2.7",
     cooldowns: 5,
     role: 2,

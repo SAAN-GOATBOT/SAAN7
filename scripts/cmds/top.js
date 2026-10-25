@@ -1228,7 +1228,7 @@ function drawFooter(
     "#36dfff";
 
   ctx.fillText(
-    "◆  SAAN-GOAT-BOT ◆",
+    "◆  SAAN-GOAT ◆",
     width / 2,
     height - 70
   );
@@ -1240,7 +1240,7 @@ function drawFooter(
     "rgba(255,255,255,0.45)";
 
   ctx.fillText(
-    "MADE BY 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃  •  BIGGER BALANCE, BIGGER DREAMS",
+    "MADE BY SAAN  •  BIGGER BALANCE, BIGGER DREAMS",
     width / 2,
     height - 43
   );
@@ -1462,4 +1462,4 @@ function cleanupFile(
       }
     } catch (error) {}
   }, 5000);
-    }
+}

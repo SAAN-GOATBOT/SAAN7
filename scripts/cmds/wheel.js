@@ -1,11 +1,23 @@
+const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
+
+const GIF_URLS = {
+  loss: "https://i.imgur.com/1jkKESg.gif",
+  "2x": "https://i.imgur.com/wGVdDKi.gif",
+  "3x": "https://i.imgur.com/1EWNoe9.gif",
+  "5x": "https://i.imgur.com/8thK7IV.gif",
+  "7x": "https://i.imgur.com/bI428mz.gif",
+  bonus: "https://i.imgur.com/wGVdDKi.gif"
+};
+
+const BRAND = "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲";
 
 module.exports = {
   config: {
     name: "wheel",
-    version: "6.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    version: "5.0",
+    author: "Saan",
     role: 0,
     countDown: 18,
     category: "GAMES",
@@ -17,325 +29,268 @@ module.exports = {
   onStart: async ({ message, event, args, usersData, api }) => {
     const { senderID, threadID } = event;
 
-    // =========================
-    // MONEY FORMAT
-    // =========================
+    const cacheDir = path.join(__dirname, "cache");
+    await fs.ensureDir(cacheDir);
+
     const formatMoney = (num) => {
       const n = Number(num);
 
-      if (!Number.isFinite(n)) {
-        return "∞";
-      }
+      if (!Number.isFinite(n)) return "∞";
 
-      if (n < 1000) {
-        return n.toFixed(0);
+      if (Math.abs(n) < 1000) {
+        return n.toLocaleString("en-US", {
+          maximumFractionDigits: 2
+        });
       }
 
       const units = [
-        { v: 1e15, s: "Q" },
-        { v: 1e12, s: "T" },
-        { v: 1e9, s: "B" },
-        { v: 1e6, s: "M" },
-        { v: 1e3, s: "K" }
+        { value: 1e12, suffix: "T" },
+        { value: 1e9, suffix: "B" },
+        { value: 1e6, suffix: "M" },
+        { value: 1e3, suffix: "K" }
       ];
 
-      for (const u of units) {
-        if (n >= u.v) {
+      for (const unit of units) {
+        if (Math.abs(n) >= unit.value) {
           return (
-            (n / u.v)
+            (n / unit.value)
               .toFixed(2)
-              .replace(/\.00$/, "") + u.s
+              .replace(/\.00$/, "")
+              .replace(/(\.\d)0$/, "$1") +
+            unit.suffix
           );
         }
       }
 
-      return n.toLocaleString();
+      return n.toLocaleString("en-US");
     };
 
-    // =========================
-    // AMOUNT PARSER
-    // =========================
     function parseAmount(input) {
-      if (!input) {
-        return NaN;
-      }
+      if (!input) return NaN;
 
-      const a = input.toLowerCase().replace(/,/g, "");
+      const value = input.toLowerCase().replace(/,/g, "").trim();
+      const match = value.match(/^(\d+(?:\.\d+)?)(k|m|b|t)?$/);
 
-      if (a.endsWith("k")) {
-        return parseFloat(a) * 1e3;
-      }
+      if (!match) return NaN;
 
-      if (a.endsWith("m")) {
-        return parseFloat(a) * 1e6;
-      }
+      const number = Number(match[1]);
+      const suffix = match[2];
 
-      if (a.endsWith("b")) {
-        return parseFloat(a) * 1e9;
-      }
+      const multipliers = {
+        k: 1e3,
+        m: 1e6,
+        b: 1e9,
+        t: 1e12
+      };
 
-      if (a.endsWith("t")) {
-        return parseFloat(a) * 1e12;
-      }
+      const amount = number * (multipliers[suffix] || 1);
 
-      if (a.endsWith("q")) {
-        return parseFloat(a) * 1e15;
-      }
-
-      return parseFloat(a);
+      return Number.isFinite(amount) ? amount : NaN;
     }
 
-    // =========================
-    // SETTINGS
-    // =========================
-    const minBet = 100;
-    const maxBet = 150e12; // Maximum: 150T
-
-    const maxSpins = 10;
-    const resetTime = 12 * 60 * 60 * 1000;
-
-    const winRate = 55;
-    const lossRate = 40;
-    const refundRate = 5;
-
-    // =========================
-    // BET CHECK
-    // =========================
     const betAmount = parseAmount(args[0]);
+    const minBet = 100;
+    const maxBet = 150e12;
 
-    if (
-      !Number.isFinite(betAmount) ||
-      betAmount < minBet
-    ) {
+    if (!Number.isFinite(betAmount) || betAmount < minBet) {
       return message.reply(
-        `🎡 𝗪𝗛𝗘𝗘𝗟 𝗦𝗣𝗜𝗡\n\n` +
-        `❌ Minimum bet: ${formatMoney(minBet)}$\n` +
-        `💡 Example: /wheel 1k`
+        `╭━━━〔 🎡 𝐖𝐇𝐄𝐄𝐋 〕━━━╮\n` +
+        `┃ 💰 Minimum Bet: ${formatMoney(minBet)}$\n` +
+        `┃ 🎯 Example: /wheel 1k\n` +
+        `╰━━━━━━━━━━━━━━━━━━╯`
       );
     }
 
     if (betAmount > maxBet) {
       return message.reply(
-        `🚫 𝗠𝗔𝗫𝗜𝗠𝗨𝗠 𝗕𝗘𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n\n` +
-        `🎯 Maximum bet: ${formatMoney(maxBet)}$\n` +
-        `💡 Example: /wheel 150t`
+        `🚫 Maximum Bet: ${formatMoney(maxBet)}$`
       );
     }
 
-    // =========================
-    // USER BALANCE
-    // =========================
     let userData = await usersData.get(senderID);
 
     if (!userData) {
-      userData = { money: 0 };
+      return message.reply("⚠️ User data not found. Please try again.");
     }
 
     const currentMoney = Number(userData.money || 0);
 
-    if (
-      !Number.isFinite(currentMoney) ||
-      currentMoney < betAmount
-    ) {
+    if (!Number.isFinite(currentMoney) || currentMoney < betAmount) {
       return message.reply(
-        `💸 𝗡𝗢𝗧 𝗘𝗡𝗢𝗨𝗚𝗛 𝗕𝗔𝗟𝗔𝗡𝗖𝗘\n\n` +
-        `💳 Balance: ${formatMoney(currentMoney)}$\n` +
-        `🎯 Bet: ${formatMoney(betAmount)}$`
+        `╭━━━〔 💸 𝐋𝐎𝐖 𝐁𝐀𝐋𝐀𝐍𝐂𝐄 〕━━━╮\n` +
+        `┃ 💳 Balance: ${formatMoney(currentMoney)}$\n` +
+        `┃ 🎯 Bet: ${formatMoney(betAmount)}$\n` +
+        `╰━━━━━━━━━━━━━━━━━━━━━━╯`
       );
     }
 
-    // =========================
-    // SPIN LIMIT
-    // 10 SPINS THEN 12 HOURS
-    // =========================
     if (!global.wheelLimit) {
       global.wheelLimit = {};
     }
 
     const now = Date.now();
+    const resetDuration = 12 * 60 * 60 * 1000;
+    let wheelData = global.wheelLimit[senderID];
 
-    let limitData = global.wheelLimit[senderID];
-
-    if (!limitData) {
-      limitData = {
+    if (!wheelData || now - wheelData.lastReset >= resetDuration) {
+      wheelData = {
         count: 0,
         lastReset: now
       };
 
-      global.wheelLimit[senderID] = limitData;
+      global.wheelLimit[senderID] = wheelData;
     }
 
-    // Reset after 12 hours from the 10th spin.
-    if (
-      limitData.count >= maxSpins &&
-      now - limitData.lastReset >= resetTime
-    ) {
-      limitData.count = 0;
-      limitData.lastReset = now;
-    }
+    const maxSpins = 10;
 
-    // Stop spinning if all 10 spins are used.
-    if (limitData.count >= maxSpins) {
-      const remaining = Math.max(
-        0,
-        resetTime - (now - limitData.lastReset)
-      );
-
-      const hours = Math.floor(
-        remaining / (60 * 60 * 1000)
-      );
-
-      const minutes = Math.floor(
-        (remaining % (60 * 60 * 1000)) / (60 * 1000)
-      );
-
-      const seconds = Math.floor(
-        (remaining % (60 * 1000)) / 1000
-      );
-
+    if (wheelData.count >= maxSpins) {
       return message.reply(
-        `🚫 𝗪𝗛𝗘𝗘𝗟 𝗟𝗜𝗠𝗜𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n\n` +
-        `🎲 Spins Used: ${maxSpins}/${maxSpins}\n` +
-        `⏳ Time Remaining: ${hours}h ${minutes}m ${seconds}s\n\n` +
-        `🔄 Try again after 12 hours.`
+        `╭━━━〔 🎡 𝐖𝐇𝐄𝐄𝐋 〕━━━╮\n` +
+        `┃ ❌ Your 10 spins have been used.\n` +
+        `┃ ⏳ Try again after your limit resets.\n` +
+        `╰━━━━━━━━━━━━━━━━━━╯`
       );
     }
 
-    // =========================
-    // RESULT SYSTEM
-    // WIN 55%
-    // LOSS 40%
-    // REFUND 5%
-    // =========================
-    const chance = Math.floor(Math.random() * 100);
+    // Outcome probabilities:
+    // 55% win, 40% loss, 5% bonus.
+    const roll = Math.random() * 100;
 
-    let resultType;
+    let winType;
     let multiplier = 0;
 
-    if (chance < winRate) {
-      const rewardChance = Math.floor(
-        Math.random() * 100
-      );
-
-      if (rewardChance < 50) {
-        resultType = "2x";
-        multiplier = 2;
-      } else if (rewardChance < 80) {
-        resultType = "3x";
-        multiplier = 3;
-      } else if (rewardChance < 95) {
-        resultType = "5x";
-        multiplier = 5;
-      } else {
-        resultType = "7x";
-        multiplier = 7;
-      }
-    } else if (chance < winRate + lossRate) {
-      resultType = "loss";
+    if (roll < 40) {
+      winType = "loss";
+    } else if (roll < 60) {
+      winType = "2x";
+      multiplier = 2;
+    } else if (roll < 75) {
+      winType = "3x";
+      multiplier = 3;
+    } else if (roll < 85) {
+      winType = "5x";
+      multiplier = 5;
+    } else if (roll < 95) {
+      winType = "7x";
+      multiplier = 7;
     } else {
-      resultType = "refund";
+      winType = "bonus";
+      multiplier = 0.5;
     }
 
-    // =========================
-    // BALANCE CALCULATION
-    // =========================
-    let finalMoney;
-    let statusText;
-    let payoutText;
-    let outcomeEmoji;
+    const win = winType !== "loss";
 
-    if (resultType === "loss") {
-      finalMoney = currentMoney - betAmount;
+    // Winning multiplier is the total bonus added to the balance.
+    // Loss deducts the bet amount.
+    const change = win
+      ? betAmount * multiplier
+      : -betAmount;
 
-      statusText = "NO MATCH FOUND";
-      payoutText =
-        `Lost: -${formatMoney(betAmount)}$`;
-      outcomeEmoji = "💀";
-    } else if (resultType === "refund") {
-      finalMoney = currentMoney;
+    const finalMoney = currentMoney + change;
 
-      statusText = "REFUND";
-      payoutText =
-        `Returned: +${formatMoney(betAmount)}$`;
-      outcomeEmoji = "🔄";
-    } else {
-      const bonus = betAmount * multiplier;
-
-      finalMoney = currentMoney + bonus;
-
-      statusText = `WIN (${multiplier}X)`;
-      payoutText =
-        `Won: +${formatMoney(bonus)}$`;
-      outcomeEmoji = "🎉";
-    }
-
-    // =========================
-    // SAVE BALANCE
-    // =========================
     userData.money = finalMoney;
 
     await usersData.set(senderID, userData);
 
-    // Count completed spin.
-    limitData.count++;
+    wheelData.count++;
 
-    // Start the 12-hour timer when
-    // the 10th spin has been completed.
-    if (limitData.count === maxSpins) {
-      limitData.lastReset = Date.now();
+    let resultTitle;
+    let resultAmount;
+
+    if (winType === "loss") {
+      resultTitle = "𝐘𝐎𝐔 𝐋𝐎𝐒𝐓 💔";
+      resultAmount = `🔻 Lost: -${formatMoney(betAmount)}$`;
+    } else if (winType === "bonus") {
+      resultTitle = "𝐁𝐎𝐍𝐔𝐒 𝐖𝐈𝐍 ✨";
+      resultAmount = `🎁 Bonus: +${formatMoney(betAmount * multiplier)}$`;
+    } else {
+      resultTitle = `𝐖𝐈𝐍 ${multiplier}𝐗 🎉`;
+      resultAmount = `💰 Won: +${formatMoney(betAmount * multiplier)}$`;
     }
 
-    const spinsLeft = maxSpins - limitData.count;
-
-    // =========================
-    // RESULT MESSAGE
-    // =========================
     const msgBody =
-      `🎡 𝗪𝗛𝗘𝗘𝗟 𝗦𝗣𝗜𝗡\n\n` +
-      `${outcomeEmoji} Result: ${statusText}\n` +
-      `💰 ${payoutText}\n` +
-      `💳 Balance: ${formatMoney(finalMoney)}$\n\n` +
-      `🎯 Win Rate: ${winRate}%\n` +
-      `🎲 Spins Left: ${spinsLeft}/${maxSpins}`;
+      `╭━━━〔 🎡 𝐖𝐇𝐄𝐄𝐋 𝐒𝐏𝐈𝐍 〕━━━╮\n` +
+      `┃\n` +
+      `┃ ${resultTitle}\n` +
+      `┃\n` +
+      `┃ 🎯 Bet: ${formatMoney(betAmount)}$\n` +
+      `┃ ${resultAmount}\n` +
+      `┃ 💳 Balance: ${formatMoney(finalMoney)}$\n` +
+      `┃ 🎮 Spins: ${wheelData.count}/${maxSpins}\n` +
+      `┃\n` +
+      `╰━━━〔 𝐒𝐀𝐀𝐍 〕━━━╯\n` +
+      `${BRAND}`;
 
-    // =========================
-    // REACTION
-    // =========================
-    try {
-      api.setMessageReaction(
-        "🌀",
-        event.messageID,
-        () => {},
-        true
-      );
-    } catch (e) {
-      console.error("[WHEEL REACTION]", e);
-    }
+    const filePath = path.join(
+      cacheDir,
+      `wheel_${senderID}_${now}.gif`
+    );
 
-    // =========================
-    // SEND RESULT
-    // =========================
     try {
-      return api.sendMessage(
-        msgBody,
-        threadID,
-        () => {
-          try {
-            api.setMessageReaction(
-              resultType === "loss" ? "❌" : "✅",
-              event.messageID,
-              () => {},
-              true
-            );
-          } catch (e) {
-            console.error("[WHEEL REACTION]", e);
-          }
-        },
-        event.messageID
-      );
-    } catch (e) {
-      console.error("[WHEEL ERROR]", e);
-      return message.reply(msgBody);
+      if (typeof api.setMessageReaction === "function") {
+        api.setMessageReaction(
+          "🌀",
+          event.messageID,
+          () => {},
+          true
+        );
+      }
+
+      const response = await axios({
+        url: GIF_URLS[winType],
+        method: "GET",
+        responseType: "stream",
+        timeout: 20000,
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
+      });
+
+      const writer = fs.createWriteStream(filePath);
+
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on("finish", resolve);
+        writer.on("error", reject);
+        response.data.on("error", reject);
+      });
+
+      await new Promise((resolve, reject) => {
+        api.sendMessage(
+          {
+            body: msgBody,
+            attachment: fs.createReadStream(filePath)
+          },
+          threadID,
+          (err) => {
+            if (err) reject(err);
+            else resolve();
+          },
+          event.messageID
+        );
+      });
+
+      if (typeof api.setMessageReaction === "function") {
+        api.setMessageReaction(
+          "✅",
+          event.messageID,
+          () => {},
+          true
+        );
+      }
+    } catch (error) {
+      console.error("[WHEEL ERROR]", error.message);
+
+      try {
+        await message.reply(msgBody);
+      } catch (replyError) {
+        console.error("[WHEEL REPLY ERROR]", replyError.message);
+      }
+    } finally {
+      setTimeout(() => {
+        fs.remove(filePath).catch(() => {});
+      }, 5000);
     }
   }
 };

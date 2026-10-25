@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "pending",
     version: "2.4",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 2,
     shortDescription: { en: "Manage pending group requests" },
@@ -29,7 +29,7 @@ module.exports = {
     const input = event.body.trim();
     const { threadID, messageID } = event;
     const prefix = global.GoatBot?.config?.prefix || "/";
-    const botNickname = global.GoatBot?.config?.nickNameBot || "GOAT BOT";
+    const botNickname = global.GoatBot?.config?.nickNameBot || "𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃";
     let done = 0;
 
     const dateTime = moment()

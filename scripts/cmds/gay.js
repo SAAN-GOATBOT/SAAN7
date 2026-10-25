@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "gay",
     version: "3.1",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 0,
     shortDescription: "Gay canvas with fixed syntax",

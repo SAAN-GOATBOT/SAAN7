@@ -2,7 +2,7 @@ module.exports = {
   config: {
     name: "pickupline",
     version: "4.5.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 2,
     role: 0,
     shortDescription: "Get 150+ Bangla/English pickuplines with emojis",

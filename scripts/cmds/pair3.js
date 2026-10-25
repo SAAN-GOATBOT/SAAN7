@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "pair3",
     version: "3.5",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     countDown: 5,
     shortDescription: "Cute romantic pair system",
@@ -307,7 +307,7 @@ module.exports = {
       
       ctx.font = "20px 'Arial'";
       ctx.fillStyle = "rgba(255, 204, 255, 0.6)";
-      ctx.fillText("Xalman Pair System", canvas.width / 2, canvas.height - 12);
+      ctx.fillText("Saan Pair System", canvas.width / 2, canvas.height - 12);
 
       for (let i = 0; i < 15; i++) {
         ctx.font = `${20 + Math.random() * 30}px sans-serif`;

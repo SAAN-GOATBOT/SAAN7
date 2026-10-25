@@ -1,7 +1,7 @@
 const config = {
   name: "topexp",
   version: "3.6.0",
-  author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+  author: "Saan",
   role: 0,
   shortDescription: {
     en: "Top 15 XP leaderboard with UIDs"

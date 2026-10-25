@@ -83,7 +83,7 @@ module.exports = {
     name: "pp",
     aliases: ["pfp"],
     version: "3.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     shortDescription: { en: "Show profile picture by UID, mention or link" },
     category: "image"

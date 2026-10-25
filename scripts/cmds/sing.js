@@ -1,7 +1,11 @@
 const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+const { createReadStream } = require("fs");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
+
 let apiBaseUrl = null;
 let apiConfigRequest = null;
 
@@ -29,15 +33,11 @@ async function getApiBaseUrl() {
   return apiConfigRequest;
 }
 
-const fs = require("fs");
-const path = require("path");
-const { createReadStream } = require("fs");
-
 module.exports = {
   config: {
     name: "sing",
-    version: "3.5",
-    author: "Saan Exhausted",
+    version: "3.6",
+    author: "Saan",
     countDown: 5,
     role: 0,
     shortDescription: "Search or download MP3",
@@ -48,9 +48,21 @@ module.exports = {
 
   onStart: async function ({ api, event, args }) {
     const { threadID, messageID, senderID, messageReply } = event;
-    const BASE_URL = `${await getApiBaseUrl()}/api`;
 
-    let query = args.join(" ");
+    let BASE_URL;
+
+    try {
+      BASE_URL = `${await getApiBaseUrl()}/api`;
+    } catch (err) {
+      console.error("API configuration error:", err.message);
+      return api.sendMessage(
+        "⚠️ Music API configuration failed. Please try again later.",
+        threadID,
+        messageID
+      );
+    }
+
+    const query = args.join(" ").trim();
 
     if (messageReply?.body) {
       const match = messageReply.body.match(/(https?:\/\/[^\s]+)/);
@@ -78,7 +90,12 @@ module.exports = {
 
     if (!query) {
       return api.sendMessage(
-        "❌ Please provide a song name or YouTube link.",
+        "╭━━━『 🎵 𝐒𝐀𝐀𝐍 𝐌𝐔𝐒𝐈𝐂 』━━━╮\n" +
+        "┃\n" +
+        "┃ 🔎 Enter a song name or YouTube link.\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━╯\n" +
+        "➤ Example: /sing Arijit Singh songs",
         threadID,
         messageID
       );
@@ -86,21 +103,22 @@ module.exports = {
 
     try {
       const { data } = await axios.get(
-        `${BASE_URL}/ytsearch?q=${encodeURIComponent(query)}`
+        `${BASE_URL}/ytsearch?q=${encodeURIComponent(query)}`,
+        { timeout: 30000 }
       );
 
       const results = data.results?.slice(0, 5);
 
       if (!results || results.length === 0) {
         return api.sendMessage(
-          "❌ No songs found.",
+          "❌ No songs found. Try another search.",
           threadID,
           messageID
         );
       }
 
       let msg =
-        "🎵 𝗠𝗨𝗦𝗜𝗖 𝗦𝗘𝗔𝗥𝗖𝗛 𝗥𝗘𝗦𝗨𝗟𝗧𝗦\n━━━━━━━━━━━━━━━\n";
+        "╭━━━『 🎵 𝐌𝐔𝐒𝐈𝐂 𝐒𝐄𝐀𝐑𝐂𝐇 』━━━╮\n\n";
 
       const attachments = [];
       const tempFiles = [];
@@ -109,16 +127,19 @@ module.exports = {
         const video = results[i];
 
         msg +=
-          `${i + 1}. ${video.title}\n` +
-          `⏱️ ${video.duration || "N/A"}\n` +
-          `📺 ${video.channel || "Unknown"}\n\n`;
+          `╭─『 ${i + 1} 』\n` +
+          `┃ 🎶 ${video.title || "Unknown"}\n` +
+          `┃ 👤 ${video.channel || "Unknown"}\n` +
+          `┃ ⏱️ ${video.duration || "N/A"}\n` +
+          `╰──────────────\n\n`;
 
         if (video.thumbnail) {
           try {
             const thumbResponse = await axios({
               url: video.thumbnail,
               method: "GET",
-              responseType: "arraybuffer"
+              responseType: "arraybuffer",
+              timeout: 15000
             });
 
             const tempThumbPath = path.join(
@@ -139,8 +160,9 @@ module.exports = {
       }
 
       msg +=
-        "━━━━━━━━━━━━━━━\n" +
-        "📥 Reply with 1-5 to download";
+        "━━━━━━━━━━━━━━━━━━\n" +
+        "📥 Reply with 1–5 to download\n" +
+        "👤 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃";
 
       const messageData = { body: msg };
 
@@ -154,13 +176,14 @@ module.exports = {
         (err, info) => {
           tempFiles.forEach(file => {
             try {
-              if (fs.existsSync(file)) {
-                fs.unlinkSync(file);
-              }
+              if (fs.existsSync(file)) fs.unlinkSync(file);
             } catch {}
           });
 
-          if (err) return;
+          if (err || !info) {
+            console.error("Failed to send search results:", err);
+            return;
+          }
 
           global.GoatBot.onReply.set(info.messageID, {
             commandName: this.config.name,
@@ -174,10 +197,10 @@ module.exports = {
       );
 
     } catch (err) {
-      console.log(err);
+      console.error("Music search error:", err.message);
 
       return api.sendMessage(
-        "⚠️ Search failed.",
+        "⚠️ Song search failed. Please try again later.",
         threadID,
         messageID
       );
@@ -189,15 +212,21 @@ module.exports = {
 
     if (senderID !== Reply.author) return;
 
-    const index = parseInt(body) - 1;
+    const choice = String(body || "").trim();
 
-    if (
-      isNaN(index) ||
-      index < 0 ||
-      index >= Reply.results.length
-    ) {
+    if (!/^[1-5]$/.test(choice)) {
       return api.sendMessage(
-        "❌ Invalid choice. Choose 1-5.",
+        "❌ Invalid choice. Reply with a number from 1 to 5.",
+        threadID,
+        messageID
+      );
+    }
+
+    const index = Number(choice) - 1;
+
+    if (index >= Reply.results.length) {
+      return api.sendMessage(
+        "❌ This song is not available in the search results.",
         threadID,
         messageID
       );
@@ -206,7 +235,7 @@ module.exports = {
     const selected = Reply.results[index];
 
     try {
-      await api.unsendMessage(Reply.messageID, threadID);
+      await api.unsendMessage(Reply.messageID);
     } catch {}
 
     return downloadAudio(
@@ -233,21 +262,24 @@ async function downloadAudio(
 
   try {
     waitMsg = await api.sendMessage(
-      "⏳ Processing Audio...",
+      "⏳ 𝐏𝐑𝐎𝐂𝐄𝐒𝐒𝐈𝐍𝐆 𝐀𝐔𝐃𝐈𝐎...\n🎵 Please wait while your song is downloading.",
       threadID
     );
 
     const { data } = await axios.get(
-      `${baseUrl}/ytmp3?url=${encodeURIComponent(url)}`
+      `${baseUrl}/ytmp3?url=${encodeURIComponent(url)}`,
+      { timeout: 60000 }
     );
 
     if (!data.success || !data.url) {
       try {
-        await api.unsendMessage(waitMsg.messageID, threadID);
+        if (waitMsg?.messageID) {
+          await api.unsendMessage(waitMsg.messageID);
+        }
       } catch {}
 
       return api.sendMessage(
-        "❌ Failed to download audio.",
+        "❌ Failed to download audio. Please try another song.",
         threadID,
         messageID
       );
@@ -256,30 +288,41 @@ async function downloadAudio(
     const response = await axios({
       url: data.url,
       method: "GET",
-      responseType: "arraybuffer"
+      responseType: "arraybuffer",
+      timeout: 120000,
+      maxContentLength: 50 * 1024 * 1024
     });
 
     tempFilePath = path.join(
       __dirname,
-      `temp_${Date.now()}.mp3`
+      `temp_saan_${Date.now()}.mp3`
     );
 
     fs.writeFileSync(tempFilePath, response.data);
 
     try {
-      await api.unsendMessage(waitMsg.messageID, threadID);
+      if (waitMsg?.messageID) {
+        await api.unsendMessage(waitMsg.messageID);
+      }
     } catch {}
+
+    const songTitle = data.title || "Unknown";
+    const songDuration = duration || data.duration || "N/A";
 
     return api.sendMessage(
       {
         body:
-          `🎵 ${data.title || "Unknown"}\n` +
-          `👤 Saan Exhausted\n` +
-          `⏱️ ${duration}`,
+          "╭━━━『 🎵 𝐌𝐏𝟑 𝐃𝐎𝐖𝐍𝐋𝐎𝐀𝐃𝐄𝐃 』━━━╮\n" +
+          "┃\n" +
+          `┃ 🎶 Song: ${songTitle}\n` +
+          "┃ 👤 Saan Exhausted\n" +
+          `┃ ⏱️ Duration: ${songDuration}\n` +
+          "┃\n" +
+          "╰━━━━━━━━━━━━━━━━━━╯",
         attachment: createReadStream(tempFilePath)
       },
       threadID,
-      (err) => {
+      err => {
         if (tempFilePath && fs.existsSync(tempFilePath)) {
           try {
             fs.unlinkSync(tempFilePath);
@@ -290,7 +333,7 @@ async function downloadAudio(
           console.error("Error sending audio:", err);
 
           return api.sendMessage(
-            "⚠️ Failed to send audio.",
+            "⚠️ Failed to send the audio file. Please try again.",
             threadID,
             messageID
           );
@@ -300,7 +343,7 @@ async function downloadAudio(
     );
 
   } catch (err) {
-    console.log(err);
+    console.error("Audio download error:", err.message);
 
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
@@ -310,12 +353,12 @@ async function downloadAudio(
 
     if (waitMsg?.messageID) {
       try {
-        await api.unsendMessage(waitMsg.messageID, threadID);
+        await api.unsendMessage(waitMsg.messageID);
       } catch {}
     }
 
     return api.sendMessage(
-      "⚠️ Failed to process audio. The file might be too large.",
+      "⚠️ Failed to process audio. The file may be too large or the API may be unavailable.",
       threadID,
       messageID
     );

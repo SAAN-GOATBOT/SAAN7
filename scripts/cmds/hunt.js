@@ -1,21 +1,13 @@
-const HUNT_LIMIT = 15;
-const HUNT_RESET_TIME = 12 * 60 * 60 * 1000; // 12 hours
-
-// User-wise hunt usage
-if (!global.HuntUsage) {
-  global.HuntUsage = new Map();
-}
-
 module.exports = {
   config: {
     name: "hunt",
     aliases: ["treasure"],
-    version: "2.1",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    version: "3.0",
+    author: "Saan",
     role: 0,
-    countDown: 13,
-    shortDescription: "Treasure Chest Hunting Game",
-    longDescription: "Bet money, pick 1 of 5 mystery chests, and win up to 5x multipliers or risk hitting traps.",
+    countDown: 10,
+    shortDescription: "Premium Treasure Chest Hunting Game",
+    longDescription: "Choose 1 of 5 mystery chests and discover hidden treasures!",
     category: "GAMES",
     guide: {
       en: "{pn} <amount>"
@@ -24,10 +16,8 @@ module.exports = {
 
   formatMoney: function (num) {
     const n = Number(num);
-
-    if (n === Infinity || isNaN(n)) return "∞";
-
-    if (n < 1000) return n.toFixed(0);
+    if (!Number.isFinite(n)) return "∞";
+    if (n < 1000) return Math.floor(n).toString();
 
     const units = [
       { v: 1e12, s: "T" },
@@ -36,11 +26,9 @@ module.exports = {
       { v: 1e3, s: "K" }
     ];
 
-    for (let u of units) {
+    for (const u of units) {
       if (n >= u.v) {
-        return (n / u.v)
-          .toFixed(2)
-          .replace(/\.00$/, "") + u.s;
+        return (n / u.v).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1") + u.s;
       }
     }
 
@@ -50,179 +38,183 @@ module.exports = {
   parseAmount: function (input) {
     if (!input) return NaN;
 
-    let a = input.toLowerCase().trim();
+    const a = String(input).toLowerCase().trim();
+    const match = a.match(/^(\d+(?:\.\d+)?)(k|m|b|t)?$/);
 
-    if (a.endsWith("k")) return parseFloat(a) * 1e3;
-    if (a.endsWith("m")) return parseFloat(a) * 1e6;
-    if (a.endsWith("b")) return parseFloat(a) * 1e9;
-    if (a.endsWith("t")) return parseFloat(a) * 1e12;
+    if (!match) return NaN;
 
-    return parseInt(a);
+    const num = parseFloat(match[1]);
+    const units = {
+      k: 1e3,
+      m: 1e6,
+      b: 1e9,
+      t: 1e12
+    };
+
+    return num * (units[match[2]] || 1);
   },
 
   onStart: async function ({ api, event, args, usersData, message }) {
     const { senderID } = event;
 
-    /*
-     * ============================
-     * HUNT LIMIT CHECK
-     * ============================
-     */
-
-    const now = Date.now();
-
-    let usage = global.HuntUsage.get(senderID);
-
-    // Create new usage data
-    if (!usage) {
-      usage = {
-        count: 0,
-        resetAt: now + HUNT_RESET_TIME
-      };
-
-      global.HuntUsage.set(senderID, usage);
-    }
-
-    // Reset after 12 hours
-    if (now >= usage.resetAt) {
-      usage.count = 0;
-      usage.resetAt = now + HUNT_RESET_TIME;
-
-      global.HuntUsage.set(senderID, usage);
-    }
-
-    // Already reached 15 hunts
-    if (usage.count >= HUNT_LIMIT) {
-      const remaining = usage.resetAt - now;
-
-      const hours = Math.floor(remaining / (60 * 60 * 1000));
-      const minutes = Math.floor(
-        (remaining % (60 * 60 * 1000)) / (60 * 1000)
-      );
-
-      return message.reply(
-        `⛔ 𝗛𝗨𝗡𝗧 𝗟𝗜𝗠𝗜𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `🎯 Limit: ${HUNT_LIMIT} hunts\n` +
-        `📊 Used: ${usage.count}/${HUNT_LIMIT}\n` +
-        `⏳ Reset: ${hours}h ${minutes}m\n\n` +
-        `💡 You can hunt again after the reset.`
-      );
-    }
-
-    /*
-     * ============================
-     * BET VALIDATION
-     * ============================
-     */
-
     if (!args[0]) {
       return message.reply(
-        "⚠️ Usage: /hunt <bet_amount>\nExample: /hunt 1k or /hunt 10b"
+        "╭━━━『 💎 𝐓𝐑𝐄𝐀𝐒𝐔𝐑𝐄 𝐇𝐔𝐍𝐓 』━━━╮\n" +
+        "┃\n" +
+        "┃ 💰 Minimum Bet: 1K\n" +
+        "┃ 💎 Maximum Bet: 70B\n" +
+        "┃ 🎁 Choose 1 of 5 mystery chests\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯\n" +
+        "➤ Usage: /hunt <amount>\n" +
+        "➤ Example: /hunt 10k"
       );
     }
 
     const betAmount = this.parseAmount(args[0]);
+    const minBet = 1000;
+    const maxBet = 70e9;
 
-    const minBet = 100;
-    const maxBet = 50e9; // 50 Billion
-
-    if (isNaN(betAmount) || betAmount < minBet) {
+    if (!Number.isFinite(betAmount) || betAmount < minBet) {
       return message.reply(
-        `🎰 Minimum bet is $${this.formatMoney(minBet)}`
+        "╭━━━『 ⚠️ 𝐈𝐍𝐕𝐀𝐋𝐈𝐃 𝐁𝐄𝐓 』━━━╮\n" +
+        "┃ Minimum Bet: 1K\n" +
+        "┃ Maximum Bet: 70B\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯"
       );
     }
 
     if (betAmount > maxBet) {
       return message.reply(
-        `🚫 Maximum bet limit is $${this.formatMoney(maxBet)}`
+        "╭━━━『 🚫 𝐁𝐄𝐓 𝐋𝐈𝐌𝐈𝐓 』━━━╮\n" +
+        "┃ Maximum Bet: 70B\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯"
       );
     }
 
-    /*
-     * ============================
-     * BALANCE CHECK
-     * ============================
-     */
-
-    let userData = await usersData.get(senderID);
-
-    if (!userData) {
-      userData = {
-        money: 0
-      };
-    }
-
-    const balance = Number(userData.money || 0);
+    const userData = await usersData.get(senderID);
+    const balance = Number(userData?.money || 0);
 
     if (betAmount > balance) {
       return message.reply(
-        `💸 Not enough balance!\nBalance: $${this.formatMoney(balance)}`
+        "╭━━━『 💸 𝐋𝐎𝐖 𝐁𝐀𝐋𝐀𝐍𝐂𝐄 』━━━╮\n" +
+        "┃ Your Balance: $" + this.formatMoney(balance) + "\n" +
+        "┃ Your Bet: $" + this.formatMoney(betAmount) + "\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯"
       );
     }
 
-    /*
-     * ============================
-     * CHEST SELECTION
-     * ============================
-     */
+    if (!global.huntLimit) global.huntLimit = {};
+
+    const now = Date.now();
+    const resetTime = 12 * 60 * 60 * 1000;
+
+    if (!global.huntLimit[senderID]) {
+      global.huntLimit[senderID] = {
+        count: 0,
+        lastReset: now
+      };
+    }
+
+    const userLimit = global.huntLimit[senderID];
+
+    if (now - userLimit.lastReset >= resetTime) {
+      userLimit.count = 0;
+      userLimit.lastReset = now;
+    }
+
+    if (userLimit.count >= 15) {
+      const remaining = resetTime - (now - userLimit.lastReset);
+      const hours = Math.floor(remaining / (60 * 60 * 1000));
+      const minutes = Math.ceil((remaining % (60 * 60 * 1000)) / (60 * 1000));
+
+      return message.reply(
+        "╭━━━『 🚫 𝐇𝐔𝐍𝐓 𝐋𝐈𝐌𝐈𝐓 』━━━╮\n" +
+        "┃ You've used all 15 hunts.\n" +
+        "┃ Try again in " + hours + "h " + minutes + "m.\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯"
+      );
+    }
 
     const promptMsg = await message.reply(
-      `🏴‍☠️ 𝗧𝗥𝗘𝗔𝗦𝗨𝗥𝗘 𝗛𝗨𝗡𝗧\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `💰 Bet Amount: $${this.formatMoney(betAmount)}\n` +
-      `🎯 Hunts: ${usage.count + 1}/${HUNT_LIMIT}\n\n` +
-      `Select a chest to open:\n` +
-      `📦 Chest 1\n` +
-      `📦 Chest 2\n` +
-      `📦 Chest 3\n` +
-      `📦 Chest 4\n` +
-      `📦 Chest 5\n\n` +
-      `👉 Reply with 1, 2, 3, 4, or 5 to choose!`
+      "╭━━━『 🏴‍☠️ 𝐓𝐑𝐄𝐀𝐒𝐔𝐑𝐄 𝐇𝐔𝐍𝐓 』━━━╮\n" +
+      "┃\n" +
+      "┃ 💰 Bet Amount: $" + this.formatMoney(betAmount) + "\n" +
+      "┃ 🎁 Choose your mystery chest!\n" +
+      "┃\n" +
+      "┃  ❶ 📦 Chest 1\n" +
+      "┃  ❷ 📦 Chest 2\n" +
+      "┃  ❸ 📦 Chest 3\n" +
+      "┃  ❹ 📦 Chest 4\n" +
+      "┃  ❺ 📦 Chest 5\n" +
+      "┃\n" +
+      "╰━━━━━━━━━━━━━━━━━━━━╯\n" +
+      "➤ Reply with 1, 2, 3, 4 or 5."
     );
 
     global.GoatBot.onReply.set(promptMsg.messageID, {
       commandName: this.config.name,
       messageID: promptMsg.messageID,
       author: senderID,
-      betAmount: betAmount,
-      balance: balance
+      betAmount: betAmount
     });
   },
 
   onReply: async function ({ api, event, Reply, usersData, message }) {
-    const {
-      author,
-      betAmount,
-      balance,
-      messageID
-    } = Reply;
+    const { author, betAmount, messageID } = Reply;
 
     if (event.senderID !== author) return;
 
-    /*
-     * ============================
-     * VALIDATE CHEST CHOICE
-     * ============================
-     */
+    const choiceText = String(event.body || "").trim();
 
-    const choice = parseInt(event.body.trim());
-
-    if (
-      isNaN(choice) ||
-      choice < 1 ||
-      choice > 5
-    ) {
+    if (!/^[1-5]$/.test(choiceText)) {
       return message.reply(
-        "⚠️ Invalid choice! Please reply with 1, 2, 3, 4, or 5."
+        "⚠️ Invalid choice!\nReply with 1, 2, 3, 4 or 5."
       );
     }
 
-    /*
-     * ============================
-     * REMOVE REPLY HANDLER
-     * ============================
-     */
+    const choice = Number(choiceText);
+
+    if (!global.huntLimit || !global.huntLimit[author]) {
+      global.huntLimit ??= {};
+      global.huntLimit[author] = {
+        count: 0,
+        lastReset: Date.now()
+      };
+    }
+
+    const now = Date.now();
+    const resetTime = 12 * 60 * 60 * 1000;
+    const userLimit = global.huntLimit[author];
+
+    if (now - userLimit.lastReset >= resetTime) {
+      userLimit.count = 0;
+      userLimit.lastReset = now;
+    }
+
+    if (userLimit.count >= 15) {
+      global.GoatBot.onReply.delete(messageID);
+      try {
+        await api.unsendMessage(messageID);
+      } catch (e) {}
+
+      return message.reply(
+        "🚫 You've reached your 15 hunts limit. Try again after the reset."
+      );
+    }
+
+    const userData = await usersData.get(author);
+    const currentBalance = Number(userData?.money || 0);
+
+    if (currentBalance < betAmount) {
+      global.GoatBot.onReply.delete(messageID);
+
+      try {
+        await api.unsendMessage(messageID);
+      } catch (e) {}
+
+      return message.reply("💸 Insufficient balance to complete this hunt!");
+    }
 
     global.GoatBot.onReply.delete(messageID);
 
@@ -230,229 +222,104 @@ module.exports = {
       await api.unsendMessage(messageID);
     } catch (e) {}
 
-    /*
-     * ============================
-     * DOUBLE CHECK LIMIT
-     * ============================
-     */
+    userLimit.count++;
 
-    const now = Date.now();
+    const outcomes = ["jackpot", "gold", "coins", "bomb", "bomb"];
 
-    let usage = global.HuntUsage.get(author);
-
-    if (!usage) {
-      usage = {
-        count: 0,
-        resetAt: now + HUNT_RESET_TIME
-      };
-
-      global.HuntUsage.set(author, usage);
+    for (let i = outcomes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [outcomes[i], outcomes[j]] = [outcomes[j], outcomes[i]];
     }
-
-    // Reset if necessary
-    if (now >= usage.resetAt) {
-      usage.count = 0;
-      usage.resetAt = now + HUNT_RESET_TIME;
-    }
-
-    // Prevent going above 15
-    if (usage.count >= HUNT_LIMIT) {
-      return message.reply(
-        `⛔ You have already used all ${HUNT_LIMIT} hunts.`
-      );
-    }
-
-    /*
-     * ============================
-     * GET USER BALANCE
-     * ============================
-     */
-
-    let userData = await usersData.get(author);
-
-    const currentBalance = Number(
-      userData?.money || balance
-    );
-
-    /*
-     * ============================
-     * CHEST RANDOMIZATION
-     * ============================
-     */
-
-    const outcomes = [
-      "jackpot",
-      "gold",
-      "coins",
-      "bomb",
-      "bomb"
-    ];
-
-    const shuffled = outcomes.sort(
-      () => Math.random() - 0.5
-    );
 
     const resultMapping = {
-      1: shuffled[0],
-      2: shuffled[1],
-      3: shuffled[2],
-      4: shuffled[3],
-      5: shuffled[4]
+      1: outcomes[0],
+      2: outcomes[1],
+      3: outcomes[2],
+      4: outcomes[3],
+      5: outcomes[4]
     };
 
     const chosenResult = resultMapping[choice];
 
-    /*
-     * ============================
-     * COUNT THIS HUNT
-     * ============================
-     */
+    const chestDisplay = [1, 2, 3, 4, 5].map(id => {
+      const res = resultMapping[id];
+      const icons = {
+        jackpot: "💎",
+        gold: "🥇",
+        coins: "🪙",
+        bomb: "💣"
+      };
 
-    usage.count += 1;
-    global.HuntUsage.set(author, usage);
+      return id === choice
+        ? "👉 " + icons[res] + " [" + id + "]"
+        : icons[res] + " [" + id + "]";
+    }).join("\n");
 
-    /*
-     * ============================
-     * RESULT
-     * ============================
-     */
-
-    let finalMoney = currentBalance;
-    let replyText = "";
-
-    const chestDisplay = [1, 2, 3, 4, 5]
-      .map(id => {
-        const res = resultMapping[id];
-
-        let icon = "📦";
-
-        if (res === "jackpot") icon = "💎";
-        if (res === "gold") icon = "🥇";
-        if (res === "coins") icon = "🪙";
-        if (res === "bomb") icon = "💣";
-
-        return id === choice
-          ? `👉 ${icon}`
-          : `${icon}`;
-      })
-      .join("  | ");
-
-    /*
-     * ============================
-     * JACKPOT
-     * ============================
-     */
+    let finalMoney;
+    let replyText;
 
     if (chosenResult === "jackpot") {
-      const profit = Math.floor(
-        betAmount * 5
-      );
-
+      const profit = Math.floor(betAmount * 5);
       finalMoney = currentBalance + profit;
 
-      userData.money = finalMoney;
-
-      await usersData.set(
-        author,
-        userData
-      );
-
       replyText =
-        `🎉 𝗥𝗢𝗬𝗔𝗟 𝗝𝗔𝗖𝗞𝗣𝗢𝗧! 💎\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `${chestDisplay}\n\n` +
-        `✨ You found the supreme Diamond Chest!\n` +
-        `💰 Profit: +$${this.formatMoney(profit)} (5x)\n` +
-        `💳 Balance: $${this.formatMoney(finalMoney)}\n` +
-        `🎯 Hunts: ${usage.count}/${HUNT_LIMIT}`;
-    }
-
-    /*
-     * ============================
-     * GOLD
-     * ============================
-     */
-
-    else if (chosenResult === "gold") {
-      const profit = Math.floor(
-        betAmount * 2.5
-      );
-
+        "╭━━━『 💎 𝐑𝐎𝐘𝐀𝐋 𝐉𝐀𝐂𝐊𝐏𝐎𝐓 』━━━╮\n" +
+        "┃\n" +
+        "┃ ✨ You discovered the Diamond Chest!\n" +
+        "┃ 💰 Profit: +$" + this.formatMoney(profit) + "\n" +
+        "┃ 🎯 Reward: 5x\n" +
+        "┃ 💳 Balance: $" + this.formatMoney(finalMoney) + "\n" +
+        "┃ 🎮 Hunts: " + userLimit.count + "/15\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯\n\n" +
+        chestDisplay;
+    } else if (chosenResult === "gold") {
+      const profit = Math.floor(betAmount * 2.5);
       finalMoney = currentBalance + profit;
 
-      userData.money = finalMoney;
-
-      await usersData.set(
-        author,
-        userData
-      );
-
       replyText =
-        `🥇 𝗚𝗢𝗟𝗗 𝗧𝗥𝗘𝗔𝗦𝗨𝗥𝗘!\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `${chestDisplay}\n\n` +
-        `✨ You found pure gold bars!\n` +
-        `💰 Profit: +$${this.formatMoney(profit)} (2.5x)\n` +
-        `💳 Balance: $${this.formatMoney(finalMoney)}\n` +
-        `🎯 Hunts: ${usage.count}/${HUNT_LIMIT}`;
-    }
-
-    /*
-     * ============================
-     * SILVER COINS
-     * ============================
-     */
-
-    else if (chosenResult === "coins") {
-      const profit = Math.floor(
-        betAmount * 1.5
-      );
-
+        "╭━━━『 🥇 𝐆𝐎𝐋𝐃 𝐓𝐑𝐄𝐀𝐒𝐔𝐑𝐄 』━━━╮\n" +
+        "┃\n" +
+        "┃ ✨ You found a Gold Chest!\n" +
+        "┃ 💰 Profit: +$" + this.formatMoney(profit) + "\n" +
+        "┃ 🎯 Reward: 2.5x\n" +
+        "┃ 💳 Balance: $" + this.formatMoney(finalMoney) + "\n" +
+        "┃ 🎮 Hunts: " + userLimit.count + "/15\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯\n\n" +
+        chestDisplay;
+    } else if (chosenResult === "coins") {
+      const profit = Math.floor(betAmount * 1.5);
       finalMoney = currentBalance + profit;
 
-      userData.money = finalMoney;
-
-      await usersData.set(
-        author,
-        userData
-      );
+      replyText =
+        "╭━━━『 🪙 𝐒𝐈𝐋𝐕𝐄𝐑 𝐂𝐎𝐈𝐍𝐒 』━━━╮\n" +
+        "┃\n" +
+        "┃ ✨ You found a Silver Chest!\n" +
+        "┃ 💰 Profit: +$" + this.formatMoney(profit) + "\n" +
+        "┃ 🎯 Reward: 1.5x\n" +
+        "┃ 💳 Balance: $" + this.formatMoney(finalMoney) + "\n" +
+        "┃ 🎮 Hunts: " + userLimit.count + "/15\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯\n\n" +
+        chestDisplay;
+    } else {
+      finalMoney = currentBalance - betAmount;
 
       replyText =
-        `🪙 𝗦𝗜𝗟𝗩𝗘𝗥 𝗖𝗢𝗜𝗡𝗦!\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `${chestDisplay}\n\n` +
-        `✨ You found a bag of silver coins!\n` +
-        `💰 Profit: +$${this.formatMoney(profit)} (1.5x)\n` +
-        `💳 Balance: $${this.formatMoney(finalMoney)}\n` +
-        `🎯 Hunts: ${usage.count}/${HUNT_LIMIT}`;
+        "╭━━━『 💥 𝐓𝐑𝐀𝐏 𝐂𝐇𝐄𝐒𝐓 』━━━╮\n" +
+        "┃\n" +
+        "┃ 💀 You triggered a hidden trap!\n" +
+        "┃ 📉 Loss: -$" + this.formatMoney(betAmount) + "\n" +
+        "┃ 💳 Balance: $" + this.formatMoney(finalMoney) + "\n" +
+        "┃ 🎮 Hunts: " + userLimit.count + "/15\n" +
+        "┃\n" +
+        "╰━━━━━━━━━━━━━━━━━━━━╯\n\n" +
+        chestDisplay;
     }
 
-    /*
-     * ============================
-     * BOMB / LOSS
-     * ============================
-     */
-
-    else {
-      finalMoney =
-        currentBalance - betAmount;
-
-      userData.money = finalMoney;
-
-      await usersData.set(
-        author,
-        userData
-      );
-
-      replyText =
-        `💥 𝗕𝗢𝗢𝗠! 💣\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `${chestDisplay}\n\n` +
-        `💀 You opened a trap chest!\n` +
-        `📉 Loss: -$${this.formatMoney(betAmount)}\n` +
-        `💳 Balance: $${this.formatMoney(finalMoney)}\n` +
-        `🎯 Hunts: ${usage.count}/${HUNT_LIMIT}`;
-    }
+    userData.money = finalMoney;
+    await usersData.set(author, userData);
 
     return message.reply(replyText);
   }

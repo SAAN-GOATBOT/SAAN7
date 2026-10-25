@@ -86,7 +86,7 @@ module.exports.config = {
     name: "baby",
     aliases: ["bby"],
     version: "11.1",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 0,
     role: 0,
     description: "api by dipto || aryan",

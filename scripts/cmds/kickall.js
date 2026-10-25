@@ -2,7 +2,7 @@ module.exports = {
 	config: {
 		name: 'kickall',
 		version: '2.1.0',
-		author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍", //do not change credits
+		author: "Saan", //do not change credits
 		countDown: 5,
 		role: 2,
 		shortDescription: 'Remove all group members',

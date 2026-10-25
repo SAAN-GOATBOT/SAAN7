@@ -9,7 +9,7 @@ module.exports = {
   config: {
     name: "punch",
     version: "3.5",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 0,
     shortDescription: "Punch a user with circular avatars",

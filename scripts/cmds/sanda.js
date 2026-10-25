@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "sanda",
     version: "2.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 0,
     shortDescription: { en: "Convert someone into a cow" },

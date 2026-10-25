@@ -10,8 +10,8 @@ module.exports = {
     name: "uptime",
     version: "3.5",
     role: 0,
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
-    description: "Premium Uptime for Goat Bot V3 with Image Generation",
+    author: "Saan",
+    description: "Premium Uptime for Goat Bot V2 with Image Generation",
     category: "system",
     guide: "{pn}",
     countDown: 5
@@ -124,7 +124,7 @@ async function generateUptimeImage(data) {
   
   ctx.font = '18px "Arial"';
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.fillText('GOAT BOT V3•PREMIUM EDITION', width - 280, 55);
+  ctx.fillText('GOAT BOT V2•PREMIUM EDITION', width - 280, 55);
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
   ctx.shadowBlur = 5;
@@ -324,7 +324,7 @@ async function generateUptimeImage(data) {
   ctx.fillRect(0, height - 40, width, 40);
   ctx.font = '13px "Arial"';
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.fillText('© Create by 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 | All Systems Operational', 50, height - 15);
+  ctx.fillText('© Create by Saan | All Systems Operational', 50, height - 15);
   ctx.fillText(`Generated: ${moment().format('HH:mm:ss')}`, width - 200, height - 15);
   
   ctx.globalAlpha = 0.05;

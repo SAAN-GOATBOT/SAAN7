@@ -14,7 +14,7 @@ module.exports = {
   config: {
     name: "fuck2",
     version: "3.2",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     role: 0,
     countDown: 5,
     shortDescription: "get 2 profile picture and generate NSFW fuck image using canvas",

@@ -13,7 +13,7 @@ const RATIOS = {
   "4:5":  { w: 800,  h: 1000 }
 };
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -47,7 +47,7 @@ module.exports = {
         name: "flux",
         version: "3.5",
         aliases: ["flux-schnell"],
-        author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+        author: "Saan",
         countDown: 8,
         role: 0,
         shortDescription: "Generate High-Quality AI Images",

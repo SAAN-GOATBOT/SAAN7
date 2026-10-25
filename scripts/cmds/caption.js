@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/goatbotnx/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalmanx-caption";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -33,7 +33,7 @@ module.exports = {
   config: {
     name: "caption",
     version: "1.5",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 2,
     role: 0,
     shortDescription: "Get random captions",

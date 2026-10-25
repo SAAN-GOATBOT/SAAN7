@@ -3,7 +3,7 @@ module.exports = {
     name: "out",
     aliases: ["out"],
     version: "2.5",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 1,
     shortDescription: "Bot will leave group",

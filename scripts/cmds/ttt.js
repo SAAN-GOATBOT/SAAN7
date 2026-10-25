@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "ttt",
     version: "2.6.0",
-    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
+    author: "Saan",
     countDown: 5,
     role: 0,
     description: "Play Tic-Tac-Toe with a chance to win!",

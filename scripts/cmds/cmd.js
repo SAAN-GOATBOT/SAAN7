@@ -143,7 +143,7 @@ module.exports = {
 	config: {
 		name: "cmd",
 		version: "3.0",
-		author: "NTKHANKI || modified by nx",
+		author: "Saan",
 		countDown: 5,
 		role: 2,
 		shortDescription: { en: "System module controller" },
