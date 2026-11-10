@@ -1228,7 +1228,7 @@ function drawFooter(
     "#36dfff";
 
   ctx.fillText(
-    "◆  SAAN-GOAT ◆",
+    "◆  SAAN-GOAT-BOT ◆",
     width / 2,
     height - 70
   );

@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/codex-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-downloader";
 let apiBaseUrl = null;
 let apiConfigRequest = null;

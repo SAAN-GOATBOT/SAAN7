@@ -17,7 +17,7 @@ module.exports = {
     const { threadID, messageID, senderID } = event;
 
     if (!args[0]) {
-      return api.sendMessage("『 SYSTEM-ERROR 』\n\n➤ Please provide DOB (DD-MM-YYYY)\n➤ Example: .age 31-12-2003", threadID, messageID);
+      return api.sendMessage("『 SYSTEM-ERROR 』\n\n➤ Please provide DOB (DD-MM-YYYY)\n➤ Example: .age 18-05-2006", threadID, messageID);
     }
 
     const birthDate = moment.tz(args[0], "DD-MM-YYYY", true, "Asia/Dhaka");

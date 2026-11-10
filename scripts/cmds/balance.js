@@ -3,7 +3,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const axios = require("axios");
 
-const nx_210 = "Saan";
+const nx_210 = "xalman";
 
 module.exports = {
     config: {

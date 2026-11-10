@@ -1,9 +1,16 @@
+// ============================================
+// TRADE LIMIT STORAGE
+// ============================================
+if (!global.tradeLimitData) {
+  global.tradeLimitData = new Map();
+}
+
 module.exports = {
   config: {
     name: "trade",
     aliases: ["quotex", "qx"],
-    version: "3.7",
-    author: "Saan",
+    version: "3.8",
+    author: "𝐒𝐈𝐀𝐌 𝐀𝐇𝐌𝐄𝐃 𝐒𝐀𝐀𝐍",
     countDown: 13,
     role: 0,
     shortDescription: "Binary Options Trading Game",
@@ -15,10 +22,29 @@ module.exports = {
   onStart: async function ({ api, event, args, usersData, message }) {
     const { senderID } = event;
 
+    // ============================================
+    // SETTINGS
+    // ============================================
+    const MIN_BET = 10;
+    const MAX_BET = 900e6; // 900M
+    const TRADE_LIMIT = 15;
+    const RESET_TIME = 12 * 60 * 60 * 1000; // 12 hours
+    const WIN_RATE = 65;
+    const PAYOUT = 1.85;
+
+    // ============================================
+    // FORMAT MONEY
+    // ============================================
     const formatMoney = (num) => {
       const n = Number(num);
-      if (!Number.isFinite(n)) return "∞";
-      if (n < 1000) return n.toLocaleString("en-US");
+
+      if (n === Infinity || isNaN(n)) {
+        return "∞";
+      }
+
+      if (n < 1000) {
+        return n.toFixed(0);
+      }
 
       const units = [
         { v: 1e12, s: "T" },
@@ -29,190 +55,342 @@ module.exports = {
 
       for (const u of units) {
         if (n >= u.v) {
-          return (n / u.v).toFixed(2).replace(/\.00$/, "") + u.s;
+          return (
+            (n / u.v)
+              .toFixed(2)
+              .replace(/\.00$/, "")
+          ) + u.s;
         }
       }
 
-      return n.toLocaleString("en-US");
+      return n.toLocaleString();
     };
 
-    function parseAmount(input) {
-      if (!input) return NaN;
+    // ============================================
+    // PARSE AMOUNT
+    // ============================================
+    const parseAmount = (input) => {
+      if (!input) {
+        return NaN;
+      }
 
-      const a = input.toLowerCase().replace(/,/g, "");
-      const match = a.match(/^(\d+(?:\.\d+)?)([kmbt]?)$/);
+      const a = input
+        .toLowerCase()
+        .trim();
 
-      if (!match) return NaN;
+      if (a.endsWith("k")) {
+        return parseFloat(a) * 1e3;
+      }
 
-      const value = parseFloat(match[1]);
-      const suffix = match[2];
+      if (a.endsWith("m")) {
+        return parseFloat(a) * 1e6;
+      }
 
-      const multipliers = {
-        "": 1,
-        k: 1e3,
-        m: 1e6,
-        b: 1e9,
-        t: 1e12
-      };
+      if (a.endsWith("b")) {
+        return parseFloat(a) * 1e9;
+      }
 
-      return value * multipliers[suffix];
-    }
+      if (a.endsWith("t")) {
+        return parseFloat(a) * 1e12;
+      }
 
-    const minBet = 10;
-    const maxBet = 1e9;
-    const tradeLimit = 15;
-    const resetTime = 12 * 60 * 60 * 1000;
+      return parseInt(a);
+    };
 
-    // Per-user trade limit; stored globally while the bot process runs.
-    if (!global.tradeLimits) global.tradeLimits = {};
-
-    const now = Date.now();
-    let userLimit = global.tradeLimits[senderID];
-
-    if (!userLimit || now - userLimit.startTime >= resetTime) {
-      userLimit = {
-        count: 0,
-        startTime: now
-      };
-      global.tradeLimits[senderID] = userLimit;
-    }
-
-    if (userLimit.count >= tradeLimit) {
-      const remaining = resetTime - (now - userLimit.startTime);
-      const hours = Math.floor(remaining / 3600000);
-      const minutes = Math.floor((remaining % 3600000) / 60000);
-
-      return message.reply(
-        `⏳ 𝗧𝗥𝗔𝗗𝗘 𝗟𝗜𝗠𝗜𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📊 Trades Used: ${tradeLimit}/${tradeLimit}\n` +
-        `🔄 Reset In: ${hours}h ${minutes}m\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `💎 Please come back after the reset.`
-      );
-    }
-
+    // ============================================
+    // FORMAT CHECK
+    // ============================================
     if (args.length < 2) {
       return message.reply(
-        `⚠️ 𝗜𝗡𝗩𝗔𝗟𝗜𝗗 𝗙𝗢𝗥𝗠𝗔𝗧\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📌 Example: /trade 1k up\n` +
-        `📌 Example: /trade 5m down`
+        "⚠️ Invalid format!\n" +
+        "Example: /trade 1k up\n" +
+        "Example: /trade 5m down"
       );
     }
 
     const betAmount = parseAmount(args[0]);
     const prediction = args[1].toLowerCase();
 
-    if (!Number.isFinite(betAmount) || betAmount < minBet) {
+    // ============================================
+    // MINIMUM BET
+    // ============================================
+    if (
+      isNaN(betAmount) ||
+      betAmount < MIN_BET
+    ) {
       return message.reply(
-        `🎰 Minimum trade: $${formatMoney(minBet)}`
+        `🎰 Minimum trade is $${formatMoney(MIN_BET)}`
       );
     }
 
-    if (betAmount > maxBet) {
+    // ============================================
+    // MAXIMUM BET
+    // ============================================
+    if (betAmount > MAX_BET) {
       return message.reply(
-        `🚫 Maximum trade: $${formatMoney(maxBet)}`
+        `🚫 Maximum trade limit is $${formatMoney(MAX_BET)}`
       );
     }
 
-    if (!["up", "down", "call", "put"].includes(prediction)) {
+    // ============================================
+    // PREDICTION CHECK
+    // ============================================
+    if (
+      prediction !== "up" &&
+      prediction !== "down" &&
+      prediction !== "call" &&
+      prediction !== "put"
+    ) {
       return message.reply(
-        `⚠️ Predict either UP (CALL) or DOWN (PUT)!`
+        "⚠️ Please predict either 'up' (Call) or 'down' (Put)!"
       );
     }
 
-    const userData = await usersData.get(senderID);
+    // ============================================
+    // GET USER DATA
+    // ============================================
+    let userData = await usersData.get(senderID);
 
     if (!userData) {
-      return message.reply("💸 User data not found. Please try again.");
+      userData = {
+        money: 0
+      };
     }
 
-    const balance = Number(userData.money || 0);
+    const balance = Number(
+      userData.money || 0
+    );
 
-    if (!Number.isFinite(balance) || balance < betAmount) {
+    // ============================================
+    // BALANCE CHECK
+    // ============================================
+    if (betAmount > balance) {
       return message.reply(
-        `💸 𝗜𝗡𝗦𝗨𝗙𝗙𝗜𝗖𝗜𝗘𝗡𝗧 𝗕𝗔𝗟𝗔𝗡𝗖𝗘\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `💳 Balance: $${formatMoney(balance)}\n` +
-        `🎯 Investment: $${formatMoney(betAmount)}`
+        `💸 Not enough balance!\n` +
+        `Balance: $${formatMoney(balance)}`
       );
     }
 
-    // Count this trade only after all validation succeeds.
-    userLimit.count++;
+    // ============================================
+    // CURRENT TIME
+    // ============================================
+    const now = Date.now();
 
-    const isCall = prediction === "up" || prediction === "call";
-    const dirText = isCall ? "🟢 CALL (UP)" : "🔴 PUT (DOWN)";
+    // ============================================
+    // GET TRADE DATA FROM MAP
+    // ============================================
+    let tradeData =
+      global.tradeLimitData.get(senderID);
 
-    const sentMsg = await message.reply(
-      `📊 𝗤𝗨𝗢𝗧𝗘 𝗧𝗥𝗔𝗗𝗘 𝗦𝗧𝗔𝗥𝗧𝗘𝗗\n` +
-      `━━━━━━━━━━━━━━━━━━━━━━\n` +
-      `🎯 Direction: ${dirText}\n` +
-      `💰 Investment: $${formatMoney(betAmount)}\n` +
-      `📈 Trade: ${userLimit.count}/${tradeLimit}\n` +
-      `⏳ Status: Analyzing Market Trends...`
+    // ============================================
+    // FIRST TRADE
+    // ============================================
+    if (!tradeData) {
+      tradeData = {
+        count: 0,
+        resetAt: now + RESET_TIME
+      };
+    }
+
+    // ============================================
+    // 12 HOUR RESET
+    // ============================================
+    if (
+      now >= tradeData.resetAt
+    ) {
+      tradeData = {
+        count: 0,
+        resetAt: now + RESET_TIME
+      };
+    }
+
+    // ============================================
+    // 15 TRADE LIMIT CHECK
+    // ============================================
+    if (
+      tradeData.count >= TRADE_LIMIT
+    ) {
+      const remaining =
+        tradeData.resetAt - now;
+
+      const hours = Math.floor(
+        remaining /
+        (60 * 60 * 1000)
+      );
+
+      const minutes = Math.floor(
+        (remaining %
+          (60 * 60 * 1000)) /
+        (60 * 1000)
+      );
+
+      return message.reply(
+        `🚫 𝗧𝗥𝗔𝗗𝗘 𝗟𝗜𝗠𝗜𝗧 𝗥𝗘𝗔𝗖𝗛𝗘𝗗\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `📊 Used: ${TRADE_LIMIT}/${TRADE_LIMIT}\n` +
+        `⏳ Reset in: ${hours}h ${minutes}m\n` +
+        `🔒 You cannot trade again until the limit resets.`
+      );
+    }
+
+    // ============================================
+    // ADD ONE TRADE
+    // ============================================
+    tradeData.count++;
+
+    // ============================================
+    // SAVE UPDATED DATA TO MAP
+    // ============================================
+    global.tradeLimitData.set(
+      senderID,
+      tradeData
     );
 
+    // ============================================
+    // DIRECTION
+    // ============================================
+    const isCall =
+      prediction === "up" ||
+      prediction === "call";
+
+    const dirText = isCall
+      ? "🟢 CALL (UP)"
+      : "🔴 PUT (DOWN)";
+
+    // ============================================
+    // START MESSAGE
+    // ============================================
+    const sentMsg =
+      await message.reply(
+        `📊 𝗤𝗨𝗢𝗧𝗘 𝗧𝗥𝗔𝗗𝗘 𝗦𝗧𝗔𝗥𝗧𝗘𝗗\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `🎯 Direction: ${dirText}\n` +
+        `💰 Investment: $${formatMoney(betAmount)}\n` +
+        `📊 Trade: ${tradeData.count}/${TRADE_LIMIT}\n` +
+        `⏳ Status: Analyzing Market Trends...`
+      );
+
+    // ============================================
+    // MARKET RESULT
+    // ============================================
     setTimeout(async () => {
       try {
-        const winChance = Math.floor(Math.random() * 100);
-        const isWin = winChance < 70;
-        const payoutMultiplier = 1.85;
+        const randomNumber =
+          Math.floor(
+            Math.random() * 100
+          );
 
-        let finalMoney;
-        let resultText;
+        // ========================================
+        // 65% WIN CHANCE
+        // ========================================
+        const isWin =
+          randomNumber < WIN_RATE;
 
-        // Fetch the latest balance before applying the result.
-        const latestUserData = await usersData.get(senderID);
+        let finalMoney = balance;
+        let resultText = "";
 
-        if (!latestUserData) {
-          return message.reply("⚠️ Could not retrieve your account data.");
-        }
-
-        const latestBalance = Number(latestUserData.money || 0);
-
+        // ========================================
+        // WIN
+        // ========================================
         if (isWin) {
-          const profit = Math.floor(betAmount * (payoutMultiplier - 1));
-          finalMoney = latestBalance + profit;
-          latestUserData.money = finalMoney;
+          const profit =
+            Math.floor(
+              betAmount *
+              (PAYOUT - 1)
+            );
 
-          await usersData.set(senderID, latestUserData);
+          finalMoney =
+            balance + profit;
+
+          userData.money =
+            finalMoney;
+
+          await usersData.set(
+            senderID,
+            userData
+          );
 
           resultText =
             `🎉 𝗜𝗧𝗠 (𝗜𝗡 𝗧𝗛𝗘 𝗠𝗢𝗡𝗘𝗬)\n` +
             `━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📈 Result: ${isCall ? "UP 🟢" : "DOWN 🔴"} ✅\n` +
+            `📈 Result: ${
+              isCall
+                ? "UP 🟢"
+                : "DOWN 🔴"
+            } ✅\n` +
             `💰 Profit: +$${formatMoney(profit)}\n` +
             `💳 Balance: $${formatMoney(finalMoney)}\n` +
-            `📊 Trades: ${userLimit.count}/${tradeLimit}`;
-        } else {
-          finalMoney = Math.max(0, latestBalance - betAmount);
-          latestUserData.money = finalMoney;
+            `📊 Trades: ${tradeData.count}/${TRADE_LIMIT}`;
+        }
 
-          await usersData.set(senderID, latestUserData);
+        // ========================================
+        // LOSS
+        // ========================================
+        else {
+          finalMoney =
+            balance - betAmount;
+
+          userData.money =
+            finalMoney;
+
+          await usersData.set(
+            senderID,
+            userData
+          );
 
           resultText =
             `💀 𝗢𝗧𝗠 (𝗢𝗨𝗧 𝗢𝗙 𝗧𝗛𝗘 𝗠𝗢𝗡𝗘𝗬)\n` +
             `━━━━━━━━━━━━━━━━━━━━━━\n` +
-            `📉 Result: ${isCall ? "DOWN 🔴" : "UP 🟢"} ❌\n` +
+            `📉 Result: ${
+              isCall
+                ? "DOWN 🔴"
+                : "UP 🟢"
+            } ❌\n` +
             `📉 Loss: -$${formatMoney(betAmount)}\n` +
             `💳 Balance: $${formatMoney(finalMoney)}\n` +
-            `📊 Trades: ${userLimit.count}/${tradeLimit}`;
+            `📊 Trades: ${tradeData.count}/${TRADE_LIMIT}`;
         }
 
-        if (sentMsg && sentMsg.messageID) {
+        // ========================================
+        // DELETE START MESSAGE
+        // ========================================
+        if (
+          sentMsg &&
+          sentMsg.messageID
+        ) {
           try {
-            await api.unsendMessage(sentMsg.messageID);
+            await api.unsendMessage(
+              sentMsg.messageID
+            );
           } catch (e) {}
         }
 
-        return message.reply(resultText);
+        // ========================================
+        // SEND RESULT
+        // ========================================
+        return message.reply(
+          resultText
+        );
+
       } catch (error) {
-        console.error("[TRADE ERROR]", error);
+        console.error(
+          "Trade Error:",
+          error
+        );
+
+        if (
+          sentMsg &&
+          sentMsg.messageID
+        ) {
+          try {
+            await api.unsendMessage(
+              sentMsg.messageID
+            );
+          } catch (e) {}
+        }
 
         return message.reply(
-          "⚠️ An error occurred while processing your trade. Please contact the bot administrator."
+          "❌ An error occurred while processing your trade."
         );
       }
     }, 7000);

@@ -5,7 +5,7 @@ module.exports = {
     name: "god",
     aliases: ["210"],
     version: "1.0",
-    author: "Saan",
+    author: "〲T A N J I L ツ",
     role: 2, // Only admin can use
     shortDescription: {
       en: "Invite up to 250 friends to the group"

@@ -29,7 +29,7 @@ module.exports = {
     const input = event.body.trim();
     const { threadID, messageID } = event;
     const prefix = global.GoatBot?.config?.prefix || "/";
-    const botNickname = global.GoatBot?.config?.nickNameBot || "𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃";
+    const botNickname = global.GoatBot?.config?.nickNameBot || "Enyo";
     let done = 0;
 
     const dateTime = moment()

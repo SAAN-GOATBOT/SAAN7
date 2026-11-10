@@ -13,7 +13,7 @@ const RATIOS = {
   "4:5":  { w: 800,  h: 1000 }
 };
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/codex-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
 let apiBaseUrl = null;
 let apiConfigRequest = null;

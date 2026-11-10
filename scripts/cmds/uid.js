@@ -5,7 +5,7 @@ module.exports = {
   config: {
     name: "uid",
     version: "2.0",
-    author: "Saan",
+    author: "ntkhanki",
     role: 0,
     shortDescription: {
       en: "Extract Facebook UID"

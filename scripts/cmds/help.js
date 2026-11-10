@@ -3,7 +3,7 @@ const axios = require("axios");
 const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "〲 𝐒𝐀𝐀𝐍 𝐄𝐗𝐇𝐀𝐔𝐒𝐓𝐄𝐃 〲";
+const doNotDelete = "〲 SAAN EXHAUSTED 〲";
 
 function getDescription(config, langCode) {
     let desc = config.shortDescription || config.description || config.longDescription;

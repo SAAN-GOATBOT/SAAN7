@@ -9,7 +9,7 @@ module.exports = {
     name: "guess",
     aliases: ["enemy","anime"],
     version: "1.2",
-    author: "Saan",
+    author: "Mahu",
     role: 0,
     shortDescription: "Guess the anime character",
     longDescription: "Guess the name of the anime character based on traits and tags with random images.",

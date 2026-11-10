@@ -324,7 +324,7 @@ async function generateUptimeImage(data) {
   ctx.fillRect(0, height - 40, width, 40);
   ctx.font = '13px "Arial"';
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.fillText('© Create by Saan | All Systems Operational', 50, height - 15);
+  ctx.fillText('© Created by SAAN | All Systems Operational', 50, height - 15);
   ctx.fillText(`Generated: ${moment().format('HH:mm:ss')}`, width - 200, height - 15);
   
   ctx.globalAlpha = 0.05;

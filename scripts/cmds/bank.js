@@ -23,7 +23,7 @@ module.exports = {
     config: {
         name: "bank",
         version: "0.0.7",
-        author: "Saan",
+        author: "Azadx69x",
         role: 0,
         shortDescription: "𝐔𝐥𝐭𝐢𝐦𝐚𝐭𝐞 𝐁𝐚𝐧𝐤𝐢𝐧𝐠 𝐒𝐲𝐬𝐭𝐞𝐦",
         longDescription: "𝐂𝐨𝐦𝐩𝐥𝐞𝐭𝐞 𝐝𝐢𝐠𝐢𝐭𝐚𝐥 𝐛𝐚𝐧𝐤𝐢𝐧𝐠 𝐰𝐢𝐭𝐡 𝐫𝐞𝐚𝐥𝐢𝐬𝐭𝐢𝐜 𝐀𝐓𝐌 𝐜𝐚𝐫𝐝𝐬",

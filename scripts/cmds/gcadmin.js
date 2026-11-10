@@ -2,7 +2,7 @@ module.exports = {
   config: {
     name: "gcadmin",
     version: "1.1",
-    author: "Saan",
+    author: "〲T A N J I L ツ | Edited by ChatGPT",
     role: 1,
     shortDescription: {
       en: "Make or remove someone as admin"

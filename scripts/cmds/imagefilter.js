@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/codex-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-imagefilter";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -47,7 +47,7 @@ module.exports = {
     author: "Saan",
     countDown: 3,
     role: 0,
-    shortDescription: "get 27 Image filter by Saan",
+    shortDescription: "get 27 Image filter by xalman",
     category: "image"
   },
 

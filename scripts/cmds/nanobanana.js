@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/codex-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -38,7 +38,7 @@ module.exports = {
     countDown: 10,
     role: 0,
     shortDescription: "Generate images using Nano Banana AI",
-    longDescription: "Generate high-quality images from text prompts using Saan's Nano Banana API",
+    longDescription: "Generate high-quality images from text prompts using Xalman's Nano Banana API",
     category: "AI",
     guide: "{pn} <prompt>"
   },

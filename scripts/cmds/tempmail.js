@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const API_CONFIG_URL = "https://raw.githubusercontent.com/negative-xalman/xalmanx210/refs/heads/main/apis.json";
+const API_CONFIG_URL = "https://raw.githubusercontent.com/codex-xalman/xalmanx210/refs/heads/main/apis.json";
 const API_KEY = "xalman-hub";
 let apiBaseUrl = null;
 let apiConfigRequest = null;
@@ -33,106 +33,116 @@ module.exports = {
   config: {
     name: "tempmail",
     aliases: ["tm"],
-    version: "6.5",
+    version: "1.3",
     author: "Saan",
     countDown: 5,
     role: 0,
-    shortDescription: "Temp-Mail (Free)",
-    longDescription: "High-speed temporary email generator and inbox checker.",
-    category: "tools",
-    guide: {
-      en: "{p}tm gen | {p}tm check <email>"
-    }
+    shortDescription: "Generate temporary email and check inbox",
+    longDescription: "Create custom temp mail addresses and fetch inbox messages using xalman API",
+    category: "utility",
+    guide: "{pn} create\n{pn} inbox [your_token]"
   },
 
   onStart: async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
     const action = args[0]?.toLowerCase();
-    const BASE_URL = `${await getApiBaseUrl()}/api`;
+    const token = args[1];
 
-    try {
-      if (!action) {
-        const helpMsg = 
-          "✉️ 𝗧𝗘𝗠𝗣-𝗠𝗔𝗜𝗟 \n" +
-          "━━━━━━━━━━━━━━━━━━\n" +
-          "➜ tm gen : Generate Mail\n" +
-          "➜ tm check <email> : Check Inbox";
-        return api.sendMessage(helpMsg, threadID, messageID);
-      }
+    if (!action || (action !== "create" && action !== "gen" && action !== "inbox")) {
+      return api.sendMessage(
+        "╭─────────────╮\n" +
+        "   📬 TEMPMAIL GUIDE   \n" +
+        "╰─────────────╯\n\n" +
+        "✨ Create Email:\n» `/tempmail create`\n\n" +
+        "📥 Check Inbox:\n» `/tempmail inbox <token>`",
+        event.threadID,
+        event.messageID
+      );
+    }
 
-      if (action === "gen") {
-        const waitMsg = await api.sendMessage("⏳ Processing... Creating private mailbox.", threadID);
-        
-        try {
-          const { data } = await axios.get(`${BASE_URL}/gen`);
+    if (action === "create" || action === "gen") {
+      const waitMsg = await api.sendMessage("⏳ Generating temporary email...", event.threadID);
 
-          if (!data.status || !data.email) {
-            api.unsendMessage(waitMsg.messageID);
-            return api.sendMessage("❌ API is currently busy. Try again.", threadID, messageID);
-          }
+      try {
+        const baseUrl = `${await getApiBaseUrl()}/api/tempmail`;
+        const res = await axios.get(`${baseUrl}?action=create`);
+        const data = res.data;
 
-          const successMsg = 
-            "✅ 𝗘𝗠𝗔𝗜𝗟 𝗚𝗘𝗡𝗘𝗥𝗔𝗧𝗘𝗗\n" +
-            "━━━━━━━━━━━━━━━━━━\n" +
-            `📧 Address: ${data.email}\n` +
-            "━━━━━━━━━━━━━━━━━━\n" +
-            "💡 𝗨𝘀𝗮𝗴𝗲:\n" +
-            `Type: tm check ${data.email}`;
+        api.unsendMessage(waitMsg.messageID);
 
-          api.unsendMessage(waitMsg.messageID);
-          return api.sendMessage(successMsg, threadID, messageID);
-        } catch (e) {
-          api.unsendMessage(waitMsg.messageID);
-          return api.sendMessage("❌ Connection failed with API server.", threadID, messageID);
-        }
-      }
-
-      if (action === "check") {
-        const email = args[1];
-        if (!email) {
-          return api.sendMessage("⚠️ Please provide an email! \nExample: tm check abc@domain.com", threadID, messageID);
+        if (!data.status) {
+          return api.sendMessage(`❌ Failed: ${data.message || "Could not generate email."}`, event.threadID, event.messageID);
         }
 
-        const waitCheck = await api.sendMessage(`🔄 Syncing inbox: ${email}...`, threadID);
+        const replyMsg = "╭─────────────────╮\n" +
+                         "  🎉 EMAIL GENERATED   \n" +
+                         "╰─────────────────╯\n\n" +
+                         `📧 Mail: ${data.email}\n` +
+                         `🔑 Token: ${data.token}\n` +
+                         `⏳ Expires: ${data.expires_at || "N/A"}\n\n` +
+                         "📌 Quick Check Command:\n" +
+                         `/tempmail inbox ${data.token}`;
 
-        try {
-          const { data } = await axios.get(`${BASE_URL}/check?email=${encodeURIComponent(email)}`);
+        return api.sendMessage(replyMsg, event.threadID, event.messageID);
 
-          if (!data.status || !data.messages || data.messages.length === 0) {
-            api.unsendMessage(waitCheck.messageID);
-            return api.sendMessage(`📭 Inbox empty or expired: \n${email}`, threadID, messageID);
-          }
+      } catch (error) {
+        api.unsendMessage(waitMsg.messageID);
+        return api.sendMessage(`❌ Error: ${error.response?.data?.message || error.message}`, event.threadID, event.messageID);
+      }
+    }
 
-          let inboxText = `📩 𝗜𝗡𝗕𝗢𝗫: ${email}\n📬 𝗧𝗼𝘁𝗮𝗹 𝗠𝗮𝗶𝗹𝘀: ${data.total_messages}\n`;
-
-          data.messages.forEach((msg, index) => {
-            const cleanBody = (msg.body || msg.content || "No content")
-              .replace(/<\/?[^>]+(>|$)/g, "")
-              .replace(/&nbsp;/g, " ")
-              .trim();
-
-            inboxText += `\n[ 𝗠𝗔𝗜𝗟 #${index + 1} ]\n`;
-            inboxText += `👤 From: ${msg.from?.name || "Sender Unknown"}\n`;
-            inboxText += `📧 Mail: ${msg.from?.address || "N/A"}\n`;
-            inboxText += `📌 Sub: ${msg.subject || "No Subject"}\n`;
-            inboxText += `📝 Msg: ${cleanBody}\n`;
-            inboxText += `━━━━━━━━━━━━━━━`;
-          });
-
-          api.unsendMessage(waitCheck.messageID);
-          return api.sendMessage(inboxText, threadID, messageID);
-
-        } catch (e) {
-          api.unsendMessage(waitCheck.messageID);
-          return api.sendMessage("❌ Error syncing inbox. Verify the email.", threadID, messageID);
-        }
+    if (action === "inbox") {
+      if (!token) {
+        return api.sendMessage("⚠️ Token missing!\nExample: `/tempmail inbox YOUR_TOKEN`", event.threadID, event.messageID);
       }
 
-      return api.sendMessage("⚠️ Invalid usage! Use 'tm gen' or 'tm check'.", threadID, messageID);
+      const waitMsg = await api.sendMessage("🔍 Checking inbox, please wait...", event.threadID);
 
-    } catch (err) {
-      console.error("TM PRO ERROR:", err);
-      return api.sendMessage("❌ System encountered an internal error.", threadID, messageID);
+      try {
+        const baseUrl = `${await getApiBaseUrl()}/api/tempmail`;
+        const res = await axios.get(`${baseUrl}?action=inbox&token=${encodeURIComponent(token)}`);
+        const data = res.data;
+
+        api.unsendMessage(waitMsg.messageID);
+
+        if (!data.status) {
+          return api.sendMessage(`❌ Error: ${data.message || "Invalid or expired token."}`, event.threadID, event.messageID);
+        }
+
+        if (!data.emails || data.emails.length === 0 || data.total_emails === 0) {
+          return api.sendMessage(
+            "╭──────────────╮\n" +
+            "   📭 INBOX EMPTY   \n" +
+            "╰──────────────╯\n\n" +
+            `✉️ Mail: ${data.email}\n` +
+            "ℹ️ No new messages received yet.",
+            event.threadID,
+            event.messageID
+          );
+        }
+
+        let inboxMsg = "╭─────────────────╮\n" +
+                       "   📥 INBOX MESSAGES   \n" +
+                       "╰─────────────────╯\n" +
+                       `📌 Target: ${data.email}\n` +
+                       `📊 Total: ${data.total_emails} Mail(s)\n` +
+                       "═══════════════════\n\n";
+
+        data.emails.forEach((mail) => {
+          inboxMsg += `📩 [ Mail #${mail.index} ]\n` +
+                      `👤 From: ${mail.from}\n` +
+                      `📌 Subject: ${mail.subject}\n` +
+                      `🕒 Time: ${mail.received_at}\n` +
+                      `───────────────────\n` +
+                      `💬 Message:\n${mail.body_text}\n` +
+                      "═══════════════════\n\n";
+        });
+
+        return api.sendMessage(inboxMsg.trim(), event.threadID, event.messageID);
+
+      } catch (error) {
+        api.unsendMessage(waitMsg.messageID);
+        return api.sendMessage(`❌ Error: ${error.response?.data?.message || error.message}`, event.threadID, event.messageID);
+      }
     }
   }
 };

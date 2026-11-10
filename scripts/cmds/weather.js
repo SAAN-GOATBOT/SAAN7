@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "weather",
     version: "1.7",
-    author: "Saan",
+    author: "T A N J I L",
     description: "Get current weather info with BD time, sunrise and sunset",
     usage: ".weather [city]",
     category: "utility",        // <-- category fixed
